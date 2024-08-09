@@ -1,64 +1,90 @@
-import yup from 'yup';
+import Joi from 'joi';
+import { allowedHobbies } from '../utils/constant.js';
+
+
 
 const schemas = {
-  loginSchema: yup.object({
-    body: yup.object({
-      email: yup.string().email().required(),
-      password: yup.string()
+  loginSchema: Joi.object({
+    body: Joi.object({
+      email: Joi.string().email().required(),
+      password: Joi.string()
         .required('please enter your password')
-        .matches(
-          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-        "Must Contain 8 Characters, 1 Uppercase, 1 Lowercase, 1 Number and 1 special Character"
-        ),
-    }),
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, 'password')
+        .message('Must Contain 8 Characters, 1 Uppercase, 1 Lowercase, 1 Number and 1 special Character'),
+    }).required().unknown(false), // Enforce no additional properties
   }),
 
-  logoutSchema: yup.object({
-    body: yup.object({
-      refreshToken: yup.string().required(),
-    }),
+  logoutSchema: Joi.object({
+    body: Joi.object({
+      refreshToken: Joi.string().required(),
+    }).required().unknown(false),
   }),
 
-  refreshTokenSchema: yup.object({
-    body: yup.object({
-      refreshToken: yup.string().required(),
-    }),
+  refreshTokenSchema: Joi.object({
+    body: Joi.object({
+      refreshToken: Joi.string().required(),
+    }).required().unknown(false),
   }),
 
-  registerSchema: yup.object({
-    body: yup.object({
-      email: yup.string().required(),
-      password: yup.string()
-      .required('please enter your password')
-        .matches(
-          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-        "Must Contain 8 Characters, 1 Uppercase, 1 Lowercase, 1 Number and 1 special Character"
-        ),
-    }),
+  registerSchema: Joi.object({
+    body: Joi.object({
+      firstName: Joi.string().min(1).max(255).required().messages({
+        'string.empty': 'First name is required',
+        'string.min': 'First name should have at least 1 character',
+        'string.max': 'First name should have at most 255 characters',
+      }),
+      lastName: Joi.string().min(1).max(255).required().messages({
+        'string.empty': 'Last name is required',
+        'string.min': 'Last name should have at least 1 character',
+        'string.max': 'Last name should have at most 255 characters',
+      }),
+      gender: Joi.string().valid('male', 'female').required().messages({
+        'string.empty': 'Gender is required',
+        'any.only': 'Gender must be one of male or female',
+      }),
+      hobby: Joi.array().items(Joi.string().valid(...allowedHobbies)).min(1).required().messages({
+        'array.base': 'Hobbies must be an array of strings',
+        'array.min': 'At least one hobby is required',
+        'string.valid': `Each hobby must be one of the following: ${allowedHobbies.join(', ')}`,
+      }),
+      email: Joi.string().email().required(),
+      password: Joi.string()
+        .required('please enter your password')
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, 'password')
+        .message('Must Contain 8 Characters, 1 Uppercase, 1 Lowercase, 1 Number and 1 special Character'),
+      role: Joi.string().valid('user', 'admin').default('user').messages({
+          'string.valid': 'Role must be either user or admin',
+        }),
+      loginCount: Joi.number().integer().min(0).default(0).messages({
+          'number.base': 'Login count must be a number',
+          'number.integer': 'Login count must be an integer',
+          'number.min': 'Login count cannot be negative',
+        }),
+      isBlock: Joi.boolean().default(false),
+      isAdminApproved: Joi.boolean().default(false),
+    }).required().unknown(false), // Enforce no additional properties
   }),
 
-  resetPasswordSchema: yup.object({
-    body: yup.object({
-      password: yup.string().min(3).max(128).required(),
-      newPassword: yup.string()
-      .required('please enter your password')
-        .matches(
-          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-        "Must Contain 8 Characters, 1 Uppercase, 1 Lowercase, 1 Number and 1 special Character"
-        ),
+  resetPasswordSchema: Joi.object({
+    body: Joi.object({
+      password: Joi.string().min(3).max(128).required(),
+      newPassword: Joi.string()
+        .required('please enter your password')
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, 'password')
+        .message('Must Contain 8 Characters, 1 Uppercase, 1 Lowercase, 1 Number and 1 special Character'),
 
-      newPasswordConfirm: yup
-        .string()
+      newPasswordConfirm: Joi.string()
         .required()
-        .oneOf([yup.ref('newPassword'), null], 'Passwords must match'),
-    }),
+        .valid(Joi.ref('newPassword'))
+        .messages({'any.only': 'Passwords must match'}),
+    }).required().unknown(false), // Enforce no additional properties
   }),
 
-  googleUserSchema: yup.object({
-    body: yup.object({
-      token : yup.string().required()
-    })
-  })
-}
- 
+  googleUserSchema: Joi.object({
+    body: Joi.object({
+      token: Joi.string().required(),
+    }).required().unknown(false),
+  }),
+};
+
 export default schemas;

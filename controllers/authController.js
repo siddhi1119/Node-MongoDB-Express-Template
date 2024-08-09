@@ -1,4 +1,4 @@
-import bcryptjs from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import {
     fetchUserFromEmailAndPassword,
     updatePassword,
@@ -15,26 +15,35 @@ import {
   } from '../services/tokenService.js';
 import { OAuth2Client } from 'google-auth-library';
 
+
    
   const register = async (req, res, next) => {
-    const {email, password} = req.body
+    const {firstName,lastName, hobby,role,loginCount,isBlock, gender, email, password,isAdminApproved} = req.body
     try {
-    const hashedPassword = await bcryptjs.hash(password, 10);
+    
     const newUser = await createNewUser({
+      firstName : firstName,
+      lastName : lastName,
+      gender : gender,
+      hobby : hobby,      
       email : email,
-      password : hashedPassword,
+      password : password,      
+      role : role,
+      loginCount : loginCount,
+      isBlock : isBlock,
+      isAdminApproved : isAdminApproved,
       source : "email"
     });
     const tokens = await generateAuthTokens(newUser)
     res.json({user : newUser,tokens});
-    } catch (error) {
+    } catch (error) {    
       next(error);
     }
   };
   
    const login = async (req, res, next) => {
     try {
-      const user = await fetchUserFromEmailAndPassword(req.body);
+      const user = await fetchUserFromEmailAndPassword(req.body);      
       const tokens = await generateAuthTokens(user);
       res.json({user,tokens});
     } catch (error) {
@@ -99,6 +108,7 @@ import { OAuth2Client } from 'google-auth-library';
   } catch (error) {
       next(error);
   }
+
   }
   const googleUserLogin = async (req, res, next) => {
     try {

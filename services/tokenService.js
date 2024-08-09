@@ -67,6 +67,7 @@ const generateAuthTokens = async (user) => {
   };
 };
 
+
 const generateAccessTokenFromRefreshTokenPayload = async ({
   userId,
   loginTime,
