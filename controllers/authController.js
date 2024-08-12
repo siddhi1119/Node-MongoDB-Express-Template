@@ -4,8 +4,10 @@ import {
     updatePassword,
     verifyCurrentPassword,
     verifyUserFromRefreshTokenPayload,
-    createNewUser,
-    fetchUserFromEmail
+    createNewUser,  
+    createNewAdminUser,  
+    fetchUserFromEmail,
+    getBlockedUsers
   } from '../services/authService.js';
   import {
     generateAuthTokens,
@@ -40,6 +42,22 @@ import { OAuth2Client } from 'google-auth-library';
       next(error);
     }
   };
+
+  const registerAdmin = async (req, res, next) => {
+    const { email, password,role } = req.body
+    try {    
+    const newUser = await createNewAdminUser({      
+      email,
+      password,
+      role
+    });
+    const tokens = await generateAuthTokens(newUser)
+    res.json({user : newUser,tokens});
+    } catch (error) {    
+      console.log(error);     
+      next(error);
+    }
+  };
   
    const login = async (req, res, next) => {
     try {
@@ -50,6 +68,15 @@ import { OAuth2Client } from 'google-auth-library';
       next(error);
     }
   };
+
+  const fetchBlockedUsers = async(req, res, next) =>{
+    try {
+      const blockedUsers = await getBlockedUsers();
+      res.json({ blockedUsers });
+    } catch (error) {
+      next(error);
+    }
+  }
   
    const logout = async (req, res, next) => {
     try {
@@ -128,5 +155,5 @@ import { OAuth2Client } from 'google-auth-library';
   }
 
 export default { 
-  login, logout, refreshToken,  resetPassword, register,googleUserRegister,googleUserLogin
+  login, logout, refreshToken,  resetPassword, register,registerAdmin,googleUserRegister,fetchBlockedUsers,googleUserLogin
 }

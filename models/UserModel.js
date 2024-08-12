@@ -3,16 +3,17 @@ import bcrypt from 'bcrypt';
 
 const userSchema = new mongoose.Schema({
     // id: { type: String, default: uuidv4 },
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    gender: { type: String, required: true },
-    hobby: [{ type: String, required: true }],
+    firstName: { type: String },
+    lastName: { type: String},
+    gender: { type: String },
+    hobby: [{ type: String }],
     email: { type: String, required: true }, //unique: true
     password: { type: String, required: true },
-    role: { type: String, default: 'user' },
-    loginCount: { type: Number, default: 0 },
-    isBlock: { type: Boolean, default: false },
-    isAdminApproved: { type: Boolean, default: false }
+    role: { type: String },
+    loginCount: { type: Number },
+    isBlock: { type: Boolean },
+    isAdminApproved: { type: Boolean },
+    isDeleted : { type: Boolean }
 })
 
 userSchema.pre('save', async function (next) {

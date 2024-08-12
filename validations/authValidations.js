@@ -26,6 +26,20 @@ const schemas = {
     }).required().unknown(false),
   }),
 
+  registerAdminSchema: Joi.object({
+    body: Joi.object({
+      email: Joi.string().email().required(),
+      password: Joi.string()
+        .required('please enter your password')
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, 'password')
+        .message('Must Contain 8 Characters, 1 Uppercase, 1 Lowercase, 1 Number and 1 special Character'),
+      role: Joi.string().valid('admin').default('admin').messages({
+          'string.valid': 'Role must be admin',
+        }),
+      isDeleted: Joi.boolean().default(true),
+    }).required().unknown(false), // Enforce no additional properties
+  }), 
+
   registerSchema: Joi.object({
     body: Joi.object({
       firstName: Joi.string().min(1).max(255).required().messages({
@@ -62,6 +76,7 @@ const schemas = {
         }),
       isBlock: Joi.boolean().default(false),
       isAdminApproved: Joi.boolean().default(false),
+      isDeleted: Joi.boolean().default(false),
     }).required().unknown(false), // Enforce no additional properties
   }),
 

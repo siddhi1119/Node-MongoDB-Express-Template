@@ -13,6 +13,10 @@ router
   .post(trimRequest.all, validate(schemas.loginSchema), controller.login);
 
 router
+  .route('/getblockuser')
+  .get(controller.fetchBlockedUsers)
+
+router
   .route('/logout')
   .post(trimRequest.all, validate(schemas.logoutSchema), controller.logout);
 
@@ -23,6 +27,10 @@ router
 router
   .route('/register')
   .post(trimRequest.all, validate(schemas.registerSchema), controller.register);
+
+router
+  .route('/register-admin')
+  .post(trimRequest.all, validate(schemas.registerAdminSchema), controller.registerAdmin);
 
 router
   .route('/reset-password')
