@@ -36,7 +36,9 @@ const schemas = {
       role: Joi.string().valid('admin').default('admin').messages({
           'string.valid': 'Role must be admin',
         }),
-      isDeleted: Joi.boolean().default(true),
+        isBlock: Joi.boolean().default(false),
+        isAdminApproved: Joi.boolean().default(false),
+        isDeleted: Joi.boolean().default(false),
     }).required().unknown(false), // Enforce no additional properties
   }), 
 
@@ -74,9 +76,9 @@ const schemas = {
           'number.integer': 'Login count must be an integer',
           'number.min': 'Login count cannot be negative',
         }),
-      isBlock: Joi.boolean().default(false),
-      isAdminApproved: Joi.boolean().default(false),
-      isDeleted: Joi.boolean().default(false),
+      isBlock: Joi.boolean().default(false).required(),
+      isAdminApproved: Joi.boolean().default(false).required(),
+      isDeleted: Joi.boolean().default(false).required(),
     }).required().unknown(false), // Enforce no additional properties
   }),
 

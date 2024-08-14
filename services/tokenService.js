@@ -7,11 +7,10 @@ import httpStatus from 'http-status';
 
 import APIError from '../utils/APIError.js';
 
-const generateToken = async (userId, loginTime, expires, type) => {
+const generateToken = async (userId, loginTime, type) => {
   const payload = {
     userId,
     loginTime: new Date(loginTime.valueOf()),
-    exp: expires.unix(),
     type,
    };
    let token = await sign(payload, process.env.JWT_SECRET);
@@ -37,14 +36,13 @@ const clearRefreshToken = async (token) => {
 
 const generateAuthTokens = async (user) => {
   const loginTime = moment();
-  let accessTokenExpiresAt = loginTime
-  .clone()
-  .add(process.env.ACCESS_TOKEN_EXPIRATION_MINUTES, 'minutes');
+  // let accessTokenExpiresAt = loginTime
+  // .clone();
+  
   
   const accessToken = await generateToken(
     user._id,
     loginTime,
-    accessTokenExpiresAt,
     tokenTypes.ACCESS,
     );
     

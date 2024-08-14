@@ -7,7 +7,8 @@ import {
     createNewUser,  
     createNewAdminUser,  
     fetchUserFromEmail,
-    getBlockedUsers
+    fetchAdminFromEmailAndPassword,
+    getBlockedUsers,    
   } from '../services/authService.js';
   import {
     generateAuthTokens,
@@ -16,11 +17,16 @@ import {
     generateAccessTokenFromRefreshTokenPayload,
   } from '../services/tokenService.js';
 import { OAuth2Client } from 'google-auth-library';
+import httpStatus from 'http-status';
+import APIError from '../utils/APIError.js';
+import { UserModel } from '../models/index.js';
+import { sendSuccessResponse } from '../utils/ApiResponse.js';
+import postModel from '../models/postModel.js';
 
 
    
   const register = async (req, res, next) => {
-    const {firstName,lastName, hobby,role,loginCount,isBlock, gender, email, password,isAdminApproved} = req.body
+    const {firstName,lastName, hobby,role,loginCount,isBlock, gender, email, password,isAdminApproved,isDeleted} = req.body
     try {
     
     const newUser = await createNewUser({
@@ -34,6 +40,7 @@ import { OAuth2Client } from 'google-auth-library';
       loginCount : loginCount,
       isBlock : isBlock,
       isAdminApproved : isAdminApproved,
+      isDeleted : isDeleted,
       source : "email"
     });
     const tokens = await generateAuthTokens(newUser)
@@ -53,12 +60,37 @@ import { OAuth2Client } from 'google-auth-library';
     });
     const tokens = await generateAuthTokens(newUser)
     res.json({user : newUser,tokens});
-    } catch (error) {    
-      console.log(error);     
+    } catch (error) {      
       next(error);
     }
   };
   
+  const createPost = async (req, res, next) => {
+    const {title,image,description,category,likes,isLiked} = req.body
+    try {
+    
+      const createdBy = {
+        id: req.user._id,
+        role: req.user.role, // Ensure req.user has `name`
+      };
+
+    const newPost = new postModel({
+      title : title,
+      image : image,
+      description : description,
+      category : category,      
+      likes : likes,
+      isLiked : isLiked,      
+      createdBy : createdBy     
+    });
+    await newPost.save();
+    res.json({post : newPost});
+    } catch (error) {    
+      console.log(error);
+      next(error);
+    }
+  };  
+
    const login = async (req, res, next) => {
     try {
       const user = await fetchUserFromEmailAndPassword(req.body);      
@@ -69,11 +101,44 @@ import { OAuth2Client } from 'google-auth-library';
     }
   };
 
+  const loginAdmin = async (req, res, next) => {
+    try {
+      const user = await fetchAdminFromEmailAndPassword(req.body);      
+      const tokens = await generateAuthTokens(user);
+      res.json({user,tokens});
+    } catch (error) {
+      next(error);
+    }
+  };
+
+
+
   const fetchBlockedUsers = async(req, res, next) =>{
     try {
-      const blockedUsers = await getBlockedUsers();
-      res.json({ blockedUsers });
+      const blockedUsersData = await getBlockedUsers();
+      // return res.json({ blockedUsers });
+      return sendSuccessResponse(req, res, blockedUsersData, blockedUsersData.count)
     } catch (error) {
+      next(error);
+    }
+  }
+
+  const UnblockedUsers = async(req, res, next) =>{
+    try {
+      const userId = req.params.id;
+
+      const updatedUser = await UserModel.findByIdAndUpdate(
+        userId,
+        { $set: { isBlock: false, loginCount: 0 } }, // Unblock the user and reset loginCount
+        { new: true } // Return the updated document
+      );
+
+      if(!updatedUser){
+        throw new APIError(httpStatus.BAD_REQUEST, "User not found");
+      }
+      return sendSuccessResponse(req, res, updatedUser)   
+    } catch (error) {
+      console.log(error);
       next(error);
     }
   }
@@ -155,5 +220,16 @@ import { OAuth2Client } from 'google-auth-library';
   }
 
 export default { 
-  login, logout, refreshToken,  resetPassword, register,registerAdmin,googleUserRegister,fetchBlockedUsers,googleUserLogin
+  login,
+  loginAdmin,
+  logout, 
+  refreshToken, 
+  resetPassword, 
+  register,
+  registerAdmin,
+  googleUserRegister,
+  fetchBlockedUsers,
+  UnblockedUsers,
+  createPost,
+  googleUserLogin
 }

@@ -4,10 +4,11 @@ import httpStatus from 'http-status';
 
 import APIError from '../utils/APIError.js';
 import bcrypt from 'bcrypt';
+import { systemRoles } from '../utils/constant.js';
 
 
 const createNewUser = async (user) => {
-  const oldUser = await UserModel.findOne({ email: user.email.toLowerCase() });
+  const oldUser = await UserModel.findOne({ email: user.email.toLowerCase(), role: systemRoles.USER }).lean();
   if (oldUser)
     throw new APIError(httpStatus.BAD_REQUEST, "Email already exists.")
   const newUser = await UserModel.create(user);
@@ -17,163 +18,95 @@ const createNewUser = async (user) => {
 }
 
 const createNewAdminUser = async ({ email, password, role }) => {
-
-    const existingUser = await UserModel.findOne({ email: email.toLowerCase(),role :'admin'}).lean();
-    console.log(existingUser);
-
-    if(existingUser){
-      throw new APIError(httpStatus.BAD_REQUEST, "Email is already registered as an admin");
-    } else {
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-      const newUser = await UserModel.create({
-        email: email.toLowerCase(),
-        password: hashedPassword,
-        role: role || 'admin'
-      });
-      return newUser;
-    }
-    
+  const existingUser = await UserModel.findOne({ email: email.toLowerCase(), role: systemRoles.ADMIN }).lean();  
+  if (existingUser) {
+    throw new APIError(httpStatus.BAD_REQUEST, "Email is already registered as an admin");
+  } else {
+    const newUser = await UserModel.create({
+      email: email.toLowerCase(),
+      password: password,
+      role: role || 'admin'
+    });
+    return newUser;
+  }
 }
 
-const getBlockedUsers = async() =>{
+const getBlockedUsers = async () => {
   try {
-    const blockedUsers = await UserModel.find({isBlock: true ,role : 'user',isDeleted : 'false'}).lean();
-    console.log(blockedUsers);
+    const blockedUsers = await UserModel.find({ isBlock: true, role: systemRoles.USER , isDeleted :false}).lean();       
     return blockedUsers;
-  } catch (error) {
+  } catch (error) {   
     throw new Error("Error fetching blocked users: " + error.message);
   }
 }
 
-const fetchUserFromEmailAndPassword = async ({ email, password }) => {
+
+
+
+const fetchAdminFromEmailAndPassword = async ({ email, password }) => {
   try {
     const lowerCaseEmail = email.toLowerCase();
+    const admin = await UserModel.findOne({ email: lowerCaseEmail, role: systemRoles.ADMIN }).lean();
 
-    const user = await UserModel.findOne({ email: lowerCaseEmail }).lean();
-    // const admin = await adminModels.findOne({ email: lowerCaseEmail }).lean();
-    
-    if (!user && !admin) {
+    if (!admin) {
       throw new APIError(httpStatus.BAD_REQUEST, 'Invalid credentials');
     }
-
-    if (user.role === 'admin') {
-      const adminPasswordMatches = await bcrypt.compare(password, admin.password);
-      if (adminPasswordMatches) {
-        return admin;
-      }
+    const adminPasswordMatches = await bcrypt.compare(password, admin.password);    
+    if (!adminPasswordMatches) {
+       throw new APIError(httpStatus.BAD_REQUEST, 'Invalid credentials');      
     }
-
-    if (user.role === 'user') {
-      const userPasswordMatches = await bcrypt.compare(password, user.password);
-
-      if (userPasswordMatches) {
-        if (user.isBlock) {
-          throw new APIError(httpStatus.BAD_REQUEST, 'Your account is blocked due to too many failed login attempts.');
-        }
-
-        if (!user.isAdminApproved) {
-          throw new APIError(httpStatus.BAD_REQUEST, 'Your account is not approved. Please contact an admin for assistance.');
-        }
-        await UserModel.findOneAndUpdate({ email: user.email }, { $set: { loginCount: 0, isBlock: false } });
-        return user;
-      } else {
-        const updatedLoginCount = user.loginCount + 1;
-        const updateData = {
-          loginCount: updatedLoginCount,
-        };
-        if (user.loginCount >= 5) {
-          updateData.loginCount = 5;
-          updateData.isBlock = true;
-        }
-
-        await UserModel.findOneAndUpdate({ email: user.email }, { $set: updateData });
-
-        if (updateData.isBlock) {
-          throw new APIError(httpStatus.BAD_REQUEST, 'Your account has been blocked due to too many failed login attempts.');
-        }
-
-        throw new APIError(httpStatus.BAD_REQUEST, 'Invalid credentials');
-
-      }
-    }
-    throw new APIError(httpStatus.BAD_REQUEST, 'Invalid credentials');
-
+    return admin;  
   } catch (err) {
+    console.log(err);
     throw new APIError(httpStatus.BAD_REQUEST, err.message || 'An error occurred');
   }
 };
 
+const fetchUserFromEmailAndPassword = async ({ email, password }) => {
+  try {
+    
+    const lowerCaseEmail = email.toLowerCase();
+    const user = await UserModel.findOne({ email: lowerCaseEmail, role: systemRoles.USER }).lean();
+    if (!user) {
+      throw new APIError(httpStatus.BAD_REQUEST, 'Invalid credentials');
+    }
+    
+    const userPasswordMatches = await bcrypt.compare(password, user.password);
+    if (!userPasswordMatches) {
+      const updatedLoginCount = user.loginCount + 1;
+      const updateData = {
+        loginCount: updatedLoginCount,
+      };
+      if (updatedLoginCount >= 5) {
+        updateData.loginCount = 5;
+        updateData.isBlock = true;
+      }
+      
+      await UserModel.findOneAndUpdate({ email: user.email,role: systemRoles.USER }, { $set: updateData }, { new: true });
+      
 
-// const fetchUserFromEmailAndPassword = async ({ email, password }) => {
-//   try {
-//     const lowerCaseEmail = email.toLowerCase();
+      if (updateData.isBlock) {
+        throw new APIError(httpStatus.BAD_REQUEST, 'Your account has been blocked due to too many failed login attempts.');
+      }
 
-//     // Fetch both user and admin by email
-//     const [user, admin] = await Promise.all([
-//       UserModel.findOne({ email: lowerCaseEmail }).lean(),
-//       adminModels.findOne({ email: lowerCaseEmail }).lean()
-//     ]);
+      throw new APIError(httpStatus.BAD_REQUEST, 'Invalid credentials');
+    }
+    if (user.isBlock) {
+      throw new APIError(httpStatus.BAD_REQUEST, 'Your account is blocked due to too many failed login attempts.');
+    }
 
-//     // Check for existence of either user or admin
-//     if (!user && !admin) {
-//       throw new APIError(httpStatus.BAD_REQUEST, 'Invalid credentials');
-//     }
+    if (!user.isAdminApproved) {
+      throw new APIError(httpStatus.BAD_REQUEST, 'Your account is not approved. Please contact an admin for assistance.');
+    }
 
-//     // Handle admin login
-//     if (admin) {
-//       const adminPasswordMatches = await bcrypt.compare(password, admin.password);
-//       if (!adminPasswordMatches) {
-//         throw new APIError(httpStatus.BAD_REQUEST, 'Invalid credentials');
-//       }
-//       return admin; // Admin successfully authenticated
-//     }
+    await UserModel.findOneAndUpdate({ email: user.email }, { $set: { loginCount: 0, isBlock: false } });
+    return user;
+  } catch (err) {
+    console.log(err);
+    throw new APIError(httpStatus.BAD_REQUEST, err.message || 'An error occurred');
+  }
+};
 
-//     // Handle user login
-//     if (user) {
-//       // Check for blocked status
-//       if (user.isBlock) {
-//         throw new APIError(httpStatus.BAD_REQUEST, 'Your account is blocked due to too many failed login attempts.');
-//       }
-
-//       // Check password match
-//       const userPasswordMatches = await bcrypt.compare(password, user.password);
-//       if (!userPasswordMatches) {
-//         const updatedLoginCount = user.loginCount + 1;
-//         const isBlocked = updatedLoginCount >= 5;
-
-//         // Update login count and block status
-//         await UserModel.findOneAndUpdate(
-//           { email: user.email },
-//           { $set: { loginCount: isBlocked ? 5 : updatedLoginCount, isBlock: isBlocked } }
-//         );
-
-//         if (isBlocked) {
-//           throw new APIError(httpStatus.BAD_REQUEST, 'Your account has been blocked due to too many failed login attempts.');
-//         }
-
-//         throw new APIError(httpStatus.BAD_REQUEST, 'Invalid credentials');
-//       }
-
-//       // Check approval status and reset login count
-//       if (!user.isAdminApproved) {
-//         throw new APIError(httpStatus.BAD_REQUEST, 'Your account is not approved. Please contact an admin for assistance.');
-//       }
-
-//       await UserModel.findOneAndUpdate(
-//         { email: user.email },
-//         { $set: { loginCount: 0, isBlock: false } }
-//       );
-
-//       return user; // User successfully authenticated
-//     }
-
-//     throw new APIError(httpStatus.BAD_REQUEST, 'Invalid credentials');
-
-//   } catch (err) {
-//     throw new APIError(httpStatus.BAD_REQUEST, err.message || 'An error occurred');
-//   }
-// };
 
 
 
@@ -244,12 +177,13 @@ const updatePassword = async (userId, newPassword) => {
 
 export {
   fetchUserFromEmailAndPassword,
+  fetchAdminFromEmailAndPassword,
   fetchUserFromEmail,
   verifyUserFromRefreshTokenPayload,
   fetchUserFromAuthData,
   verifyCurrentPassword,
   updatePassword,
   createNewUser,
-  createNewAdminUser,
+  createNewAdminUser, 
   getBlockedUsers
 };

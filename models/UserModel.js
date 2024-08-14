@@ -11,9 +11,9 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     role: { type: String },
     loginCount: { type: Number },
-    isBlock: { type: Boolean },
-    isAdminApproved: { type: Boolean },
-    isDeleted : { type: Boolean }
+    isBlock: { type: Boolean , default:false},
+    isAdminApproved: { type: Boolean,default:false },
+    isDeleted : { type: Boolean ,default:false}
 })
 
 userSchema.pre('save', async function (next) {

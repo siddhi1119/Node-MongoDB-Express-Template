@@ -1,5 +1,5 @@
 import express from 'express';
-import { isActiveUser } from '../middlewares/isActiveUser.js';
+import { isActiveAdmin, isActiveUser } from '../middlewares/isActiveUser.js';
 import validate from '../utils/yupValidations.js';
 import controller from '../controllers/authController.js';
 import trimRequest from 'trim-request';
@@ -11,10 +11,10 @@ const router = express.Router();
 router
   .route('/login')
   .post(trimRequest.all, validate(schemas.loginSchema), controller.login);
-
-router
-  .route('/getblockuser')
-  .get(controller.fetchBlockedUsers)
+  
+  router
+  .route('/login-admin')
+  .post(trimRequest.all, validate(schemas.loginSchema), controller.loginAdmin);
 
 router
   .route('/logout')

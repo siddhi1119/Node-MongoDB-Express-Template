@@ -16,6 +16,7 @@ const verify = async (token, secret) => {
   return new Promise((resolve, reject) => {
     jwt.verify(token, secret, (error, payload) => {
       if (error) {
+        console.log(error);
         resolve(null);
       } else {
         resolve(payload);

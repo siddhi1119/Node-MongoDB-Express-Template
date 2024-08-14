@@ -1,11 +1,11 @@
-import yup from 'yup';
+import Joi from 'joi';
 
 const schemas = {
-  profileSchema: yup.object({
-    access: yup.object({
-      userId: yup.string().required(),
-    }),
-  }),
+  profileSchema: Joi.object({
+    access: Joi.object({
+      userId: Joi.string().required(),
+    }).required(),
+  }).required(),
 };
 
 export default schemas;

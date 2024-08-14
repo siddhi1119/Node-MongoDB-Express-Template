@@ -1,12 +1,17 @@
 const validate = (schema) => async (req, res, next) => {
   try {
     // Validate each part of the request using Joi
-    await schema.validateAsync({
-      body: req.body,
-      // query: req.query,
-      // params: req.params,
-    }, { abortEarly: false }); // abortEarly: false to collect all errors
+    // await schema.validateAsync({
+    //   body: req.body,
+    //   // query: req.query,
+    //   //  params: req.params,
+    // }, { abortEarly: false }); // abortEarly: false to collect all errors
 
+    const toValidate = {};
+    if (schema._ids._byKey.has('body')) toValidate.body = req.body;
+    if (schema._ids._byKey.has('params')) toValidate.params = req.params;
+    if (schema._ids._byKey.has('query')) toValidate.query = req.query;
+    await schema.validateAsync(toValidate, { abortEarly: false });
     // Proceed to the next middleware if validation is successful
     next();
   } catch (err) {
