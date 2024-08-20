@@ -5,6 +5,7 @@ import httpStatus from 'http-status';
 import APIError from '../utils/APIError.js';
 import bcrypt from 'bcrypt';
 import { systemRoles } from '../utils/constant.js';
+import postModel from '../models/postModel.js';
 
 
 const createNewUser = async (user) => {
@@ -18,7 +19,7 @@ const createNewUser = async (user) => {
 }
 
 const createNewAdminUser = async ({ email, password, role }) => {
-  const existingUser = await UserModel.findOne({ email: email.toLowerCase(), role: systemRoles.ADMIN }).lean();  
+  const existingUser = await UserModel.findOne({ email: email.toLowerCase(), role: systemRoles.ADMIN }).lean();
   if (existingUser) {
     throw new APIError(httpStatus.BAD_REQUEST, "Email is already registered as an admin");
   } else {
@@ -33,15 +34,54 @@ const createNewAdminUser = async ({ email, password, role }) => {
 
 const getBlockedUsers = async () => {
   try {
-    const blockedUsers = await UserModel.find({ isBlock: true, role: systemRoles.USER , isDeleted :false}).lean();       
+    const blockedUsers = await UserModel.find({ isBlock: true, role: systemRoles.USER, isDeleted: false }).lean();
     return blockedUsers;
-  } catch (error) {   
+  } catch (error) {
     throw new Error("Error fetching blocked users: " + error.message);
   }
 }
 
+const getAllPosts = async () => {
+  try {
+    const posts = await postModel.find().lean();
+    return posts;
+  } catch (error) {
+    throw new Error("Error fetching blocked users: " + error.message);
+  }
+}
 
+const getAllSearchPosts = async (searchQuery) => {
+  try {
 
+    const regex = new RegExp(searchQuery, 'i');
+
+    const filteredPosts = await postModel.find({
+      $or: [{ title: regex }, { description: regex }],
+    }).lean();
+    return filteredPosts;
+  } catch (error) {
+    console.log(error);
+    throw new Error("Error searching posts: " + error.message);
+  }
+}
+
+const getPostsByCategory = async (category) => {
+  try {
+    if (!category || category.length === 0) {
+      throw new Error("Categories are required for filtering");
+    }
+    const regexCategories = category.map(category => new RegExp(category, 'i'));
+
+    const filteredPosts = await postModel.find({
+      category: { $in: regexCategories }
+    }).lean();
+
+    return filteredPosts;
+  } catch (error) {
+    console.log(error);
+    throw new Error("Error searching posts: " + error.message);
+  }
+}
 
 const fetchAdminFromEmailAndPassword = async ({ email, password }) => {
   try {
@@ -51,11 +91,11 @@ const fetchAdminFromEmailAndPassword = async ({ email, password }) => {
     if (!admin) {
       throw new APIError(httpStatus.BAD_REQUEST, 'Invalid credentials');
     }
-    const adminPasswordMatches = await bcrypt.compare(password, admin.password);    
+    const adminPasswordMatches = await bcrypt.compare(password, admin.password);
     if (!adminPasswordMatches) {
-       throw new APIError(httpStatus.BAD_REQUEST, 'Invalid credentials');      
+      throw new APIError(httpStatus.BAD_REQUEST, 'Invalid credentials');
     }
-    return admin;  
+    return admin;
   } catch (err) {
     console.log(err);
     throw new APIError(httpStatus.BAD_REQUEST, err.message || 'An error occurred');
@@ -64,13 +104,13 @@ const fetchAdminFromEmailAndPassword = async ({ email, password }) => {
 
 const fetchUserFromEmailAndPassword = async ({ email, password }) => {
   try {
-    
+
     const lowerCaseEmail = email.toLowerCase();
     const user = await UserModel.findOne({ email: lowerCaseEmail, role: systemRoles.USER }).lean();
     if (!user) {
       throw new APIError(httpStatus.BAD_REQUEST, 'Invalid credentials');
     }
-    
+
     const userPasswordMatches = await bcrypt.compare(password, user.password);
     if (!userPasswordMatches) {
       const updatedLoginCount = user.loginCount + 1;
@@ -81,9 +121,9 @@ const fetchUserFromEmailAndPassword = async ({ email, password }) => {
         updateData.loginCount = 5;
         updateData.isBlock = true;
       }
-      
-      await UserModel.findOneAndUpdate({ email: user.email,role: systemRoles.USER }, { $set: updateData }, { new: true });
-      
+
+      await UserModel.findOneAndUpdate({ email: user.email, role: systemRoles.USER }, { $set: updateData }, { new: true });
+
 
       if (updateData.isBlock) {
         throw new APIError(httpStatus.BAD_REQUEST, 'Your account has been blocked due to too many failed login attempts.');
@@ -184,6 +224,9 @@ export {
   verifyCurrentPassword,
   updatePassword,
   createNewUser,
-  createNewAdminUser, 
-  getBlockedUsers
+  createNewAdminUser,
+  getBlockedUsers,
+  getAllSearchPosts,
+  getPostsByCategory,
+  getAllPosts
 };

@@ -9,8 +9,7 @@ const postSchema = new mongoose.Schema({
   isLiked: {type: Boolean,default: false},
   createdBy: {
      id: {
-      type: mongoose.Schema.Types.ObjectId, // User ID reference
-      // ref: 'User',
+      type: mongoose.Schema.Types.ObjectId, 
       required: true,
     },
     role: {type: String, required: true},

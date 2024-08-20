@@ -30,7 +30,7 @@ const isActiveUser = async (req, res, next) => {
       throw new APIError(httpStatus.FORBIDDEN, 'Invalid Access Token - logout');;
 
     req.authData = tokenPayload;
-
+    req.user = userExists;
     next();
   } catch (error) {
     next(error);

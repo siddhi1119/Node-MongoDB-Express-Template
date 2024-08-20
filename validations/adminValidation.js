@@ -16,9 +16,8 @@ const schemas = {
       title: Joi.string().required().messages({
         'string.empty': 'Title is required',
       }),
-      image: Joi.string().uri().required().messages({
+      image: Joi.string().required().messages({
         'string.empty': 'Image URL is required',
-        'string.uri': 'Image must be a valid URL',
       }),
       description: Joi.string().required().messages({
         'string.empty': 'Description is required',
