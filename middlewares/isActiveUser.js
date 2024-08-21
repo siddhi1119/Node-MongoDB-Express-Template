@@ -31,6 +31,7 @@ const isActiveUser = async (req, res, next) => {
 
     req.authData = tokenPayload;
     req.user = userExists;
+    req.body.createdBy = userExists;
     next();
   } catch (error) {
     next(error);
@@ -59,7 +60,8 @@ const isActiveAdmin = async (req, res, next) => {
 
     req.authData = tokenPayload;
     req.user = userExists;
-
+    req.body.createdBy = userExists;
+    
     next();
   } catch (error) {
     console.log(error);

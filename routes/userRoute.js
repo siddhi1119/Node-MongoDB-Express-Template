@@ -9,20 +9,28 @@ import authController from '../controllers/authController.js';
 
 const router = express.Router();
 
- router
+router
   .route('/')
-  .get(trimRequest.all, isActiveUser,userController.getUserInfo);
+  .get(trimRequest.all, isActiveUser, userController.getUserInfo);
 
- router
+router
   .route('/create-post')
-  .post(isActiveUser,validate(adminSchemas.postValidationSchema),authController.createPost)
+  .post(isActiveUser, validate(adminSchemas.postValidationSchema), authController.createPost)
 
- router
+router
   .route('/posts')
   .get(authController.fetchAllPost)
 
+// router
+//   .route('/search-post')
+//   .get(authController.searchPost)
+
+// router
+//   .route('/search-posts-by-category')
+//   .get(authController.searchPostsByCategory)
+
   router
-  .route('/search-post')
-  .post(authController.searchPost)
-  
+  .route('/like/:postId')
+  .put(isActiveUser,authController.likePost)
+
 export default router;

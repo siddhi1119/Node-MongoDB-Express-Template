@@ -16,13 +16,13 @@ router
   .route('/posts')
   .get(authController.fetchAllPost)
 
-router
-  .route('/search-post')
-  .post(authController.searchPost)
+// router
+//   .route('/search-post')
+//   .get(authController.searchPost)
 
-router
-  .route('/search-post')
-  .get(authController.searchPostsByCategory)
+// router
+//   .route('/search-posts-by-category')
+//   .get(authController.searchPostsByCategory)
 
 router
   .route('/unblocked-users/:id')
@@ -31,6 +31,10 @@ router
 router
   .route('/create-post')
   .post(isActiveAdmin,validate(adminSchemas.postValidationSchema),authController.createPost)
+
+  router
+  .route('/like/:postId')
+  .put(isActiveAdmin,authController.likePost)
 
 router.all('/unblocked-users', (req, res) => {
     res.status(400).json({

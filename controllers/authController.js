@@ -9,8 +9,8 @@ import {
   fetchUserFromEmail,
   fetchAdminFromEmailAndPassword,
   getBlockedUsers,
-  getAllSearchPosts,
-  getPostsByCategory,
+  // getAllSearchPosts,
+  // getPostsByCategory,
   getAllPosts
 } from '../services/authService.js';
 import {
@@ -75,7 +75,7 @@ const createPost = async (req, res, next) => {
   try {
     let imageUrl;
     if (image) {
-      const imgbbApiKey = process.env.IMGBB_API_KEY;
+      const imgbbApiKey = process?.env?.IMGBB_API_KEY;
       const formData = new FormData();
       formData.append('image', image);
 
@@ -92,8 +92,8 @@ const createPost = async (req, res, next) => {
       imageUrl = response?.data?.data?.display_url;
     }
     const createdBy = {
-      id: req.user._id,
-      role: req.user.role,
+      id: req?.user._id,
+      role: req?.user.role,
     };
 
     const newPost = await postModel.create({
@@ -111,6 +111,44 @@ const createPost = async (req, res, next) => {
     next(error);
   }
 };
+
+const likePost = async (req, res, next) => {
+  const {postId} = req.params;
+  const userId = req?.user?._id.toString();
+
+  const likedBy = {
+    id: userId,
+    name: req?.user?.role === 'admin' ? req?.user?.email : req?.user?.firstName,
+  };
+
+  try{
+    const post = await postModel.findById(postId);
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+   
+    const userHasLiked = post.likedBy.some(like=>like.userId?.toString()===userId);
+    
+    let updateOperations = {};
+    if(userHasLiked){
+      updateOperations = {
+        $inc: { likes: -1 },
+        $set: { isLiked: false },
+        $pull: { likedBy: { userId: userId } }
+      };
+    } else {
+      updateOperations = {
+        $inc: { likes: 1 },
+        $set: { isLiked: true },
+        $push: { likedBy: { userId: likedBy.id , name : likedBy.name }}
+      };   
+    }
+    const updatedPost = await postModel.findByIdAndUpdate(postId,updateOperations,{new:true});
+    return sendSuccessResponse(req, res, updatedPost)
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
+
 
 const login = async (req, res, next) => {
   try {
@@ -134,38 +172,54 @@ const loginAdmin = async (req, res, next) => {
 
 const fetchAllPost = async (req, res, next) => {
   try {
-    const allPosts = await getAllPosts();
-    return sendSuccessResponse(req, res, allPosts, allPosts.count)
+    const {searchString, category} = req.query;
+    let query = {};
+
+    if(searchString){
+      const regex = new RegExp(searchString, 'i');
+      query.$or = [{ title: regex }, { description: regex }];
+    }
+
+    
+    if(category.length){
+      // const categoriesArray = category ? category.split(',') : [];
+      // const regexCategories = categoriesArray.map(category => new RegExp(category, 'i'));
+      query.category = { $in: category };
+    }
+    const allPosts = await getAllPosts(query);
+    return sendSuccessResponse(req, res, allPosts, allPosts?.length)
   } catch (error) {
+    console.log(error);
     next(error);
   }
 }
 
-const searchPost = async (req, res, next) => {
-  try {    
-    const {  searchString  } = req.body;
-    const post = await getAllSearchPosts(searchString);
-    return sendSuccessResponse(req, res, post, post?.length)
-  } catch (error) {
-    next(error);
-  }
-}
+// const searchPost = async (req, res, next) => {
+//   try {    
+//     const {  searchString  } = req.body;
+//     const post = await getAllSearchPosts(searchString);
+//     return sendSuccessResponse(req, res, post, post?.length)
+//   } catch (error) {
+//     next(error);
+//   }
+// }
 
-const searchPostsByCategory = async (req, res, next) => {
-  try {    
-    const { category } = req.query;
-    const categoriesArray = category ? category.split(',') : [];
-    const post = await getPostsByCategory(categoriesArray);
-    return sendSuccessResponse(req, res, post, post?.length)
-  } catch (error) {
-    next(error);
-  }
-}
+// const searchPostsByCategory = async (req, res, next) => {
+//   try {    
+//     const { category } = req.query;
+//     const categoriesArray = category ? category.split(',') : [];
+//     const post = await getPostsByCategory(categoriesArray);
+//     return sendSuccessResponse(req, res, post, post?.length)
+//   } catch (error) {
+//     next(error);
+//   }
+// }
+
 const fetchBlockedUsers = async (req, res, next) => {
   try {
     const blockedUsersData = await getBlockedUsers();
     // return res.json({ blockedUsers });
-    return sendSuccessResponse(req, res, blockedUsersData, blockedUsersData.count)
+    return sendSuccessResponse(req, res, blockedUsersData, blockedUsersData?.length)
   } catch (error) {
     next(error);
   }
@@ -173,7 +227,7 @@ const fetchBlockedUsers = async (req, res, next) => {
 
 const UnblockedUsers = async (req, res, next) => {
   try {
-    const userId = req.params.id;
+    const userId = req?.params?.id;
 
     const updatedUser = await UserModel.findByIdAndUpdate(
       userId,
@@ -279,8 +333,9 @@ export default {
   fetchBlockedUsers,
   UnblockedUsers,
   createPost,
+  likePost,
   fetchAllPost,
-  searchPost,
-  searchPostsByCategory,
+  // searchPost,
+  // searchPostsByCategory,
   googleUserLogin
 }
