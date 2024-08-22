@@ -29,9 +29,14 @@ const isActiveUser = async (req, res, next) => {
     if (!userExists)
       throw new APIError(httpStatus.FORBIDDEN, 'Invalid Access Token - logout');;
 
+    const userData = {
+      name: (userExists?.firstName || "") + (userExists?.lastName ? ` ${userExists?.lastName}` : ""),
+      _id: userExists?._id,
+      role: userExists?.role
+    };
     req.authData = tokenPayload;
-    req.user = userExists;
-    req.body.createdBy = userExists;
+    req.user = userData;
+    // req.body.createdBy = userExists;
     next();
   } catch (error) {
     next(error);
@@ -58,9 +63,14 @@ const isActiveAdmin = async (req, res, next) => {
     if (!userExists)
       throw new APIError(httpStatus.FORBIDDEN, 'Invalid Access Token - logout');;
 
+    const userData = {
+      name: userExists?.firstName ?? "" + userExists?.lastName ?? "",
+      _id: userExists?._id,
+      role: userExists?.role
+    };    
     req.authData = tokenPayload;
-    req.user = userExists;
-    req.body.createdBy = userExists;
+    req.user = userData;
+    // req.body.createdBy = userExists;
     
     next();
   } catch (error) {

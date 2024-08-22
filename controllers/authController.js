@@ -1,4 +1,3 @@
-import bcrypt from 'bcrypt';
 import {
   fetchUserFromEmailAndPassword,
   updatePassword,
@@ -8,10 +7,7 @@ import {
   createNewAdminUser,
   fetchUserFromEmail,
   fetchAdminFromEmailAndPassword,
-  getBlockedUsers,
-  // getAllSearchPosts,
-  // getPostsByCategory,
-  getAllPosts
+  getBlockedUsers, 
 } from '../services/authService.js';
 import {
   generateAuthTokens,
@@ -23,14 +19,10 @@ import { OAuth2Client } from 'google-auth-library';
 import httpStatus from 'http-status';
 import APIError from '../utils/APIError.js';
 import { UserModel } from '../models/index.js';
-import { sendSuccessResponse } from '../utils/ApiResponse.js';
-import postModel from '../models/postModel.js';
-import axios from "axios";
-import FormData from "form-data";
+import { sendError, sendSuccessResponse } from '../utils/ApiResponse.js';
 
 
-
-const register = async (req, res, next) => {
+const register = async (req, res) => {
   const { firstName, lastName, hobby, role, loginCount, isBlock, gender, email, password, isAdminApproved, isDeleted } = req.body
   try {
 
@@ -51,11 +43,11 @@ const register = async (req, res, next) => {
     const tokens = await generateAuthTokens(newUser)
     res.json({ user: newUser, tokens });
   } catch (error) {
-    next(error);
+    return sendError(error, req, res, 400);
   }
 };
 
-const registerAdmin = async (req, res, next) => {
+const registerAdmin = async (req, res) => {
   const { email, password, role } = req.body
   try {
     const newUser = await createNewAdminUser({
@@ -66,173 +58,47 @@ const registerAdmin = async (req, res, next) => {
     const tokens = await generateAuthTokens(newUser)
     res.json({ user: newUser, tokens });
   } catch (error) {
-    next(error);
+    return sendError(error, req, res, 400);
   }
 };
 
-const createPost = async (req, res, next) => {
-  const { title, image, description, category, likes, isLiked } = req.body
-  try {
-    let imageUrl;
-    if (image) {
-      const imgbbApiKey = process?.env?.IMGBB_API_KEY;
-      const formData = new FormData();
-      formData.append('image', image);
-
-      let config = {
-        method: 'post',
-        maxBodyLength: Infinity,
-        url: `https://api.imgbb.com/1/upload?key=${imgbbApiKey}`,
-        headers: {
-          ...formData.getHeaders()
-        },
-        data: formData
-      };
-      const response = await axios.request(config);
-      imageUrl = response?.data?.data?.display_url;
-    }
-    const createdBy = {
-      id: req?.user._id,
-      role: req?.user.role,
-    };
-
-    const newPost = await postModel.create({
-      title: title,
-      image: imageUrl,
-      description: description,
-      category: category,
-      likes: likes,
-      isLiked: isLiked,
-      createdBy: createdBy
-    })
-    // res.json({post : newPost});
-    return sendSuccessResponse(req, res, newPost)
-  } catch (error) {
-    next(error);
-  }
-};
-
-const likePost = async (req, res, next) => {
-  const {postId} = req.params;
-  const userId = req?.user?._id.toString();
-
-  const likedBy = {
-    id: userId,
-    name: req?.user?.role === 'admin' ? req?.user?.email : req?.user?.firstName,
-  };
-
-  try{
-    const post = await postModel.findById(postId);
-    if (!post) return res.status(404).json({ message: 'Post not found' });
-   
-    const userHasLiked = post.likedBy.some(like=>like.userId?.toString()===userId);
-    
-    let updateOperations = {};
-    if(userHasLiked){
-      updateOperations = {
-        $inc: { likes: -1 },
-        $set: { isLiked: false },
-        $pull: { likedBy: { userId: userId } }
-      };
-    } else {
-      updateOperations = {
-        $inc: { likes: 1 },
-        $set: { isLiked: true },
-        $push: { likedBy: { userId: likedBy.id , name : likedBy.name }}
-      };   
-    }
-    const updatedPost = await postModel.findByIdAndUpdate(postId,updateOperations,{new:true});
-    return sendSuccessResponse(req, res, updatedPost)
-  } catch (error) {
-    console.log(error);
-    next(error);
-  }
-};
-
-
-const login = async (req, res, next) => {
+const login = async (req, res) => {
   try {
     const user = await fetchUserFromEmailAndPassword(req.body);
     const tokens = await generateAuthTokens(user);
     res.json({ user, tokens });
   } catch (error) {
-    next(error);
+    return sendError(error, req, res, 400);
   }
 };
 
-const loginAdmin = async (req, res, next) => {
+const loginAdmin = async (req, res) => {
   try {
     const user = await fetchAdminFromEmailAndPassword(req.body);
     const tokens = await generateAuthTokens(user);
     res.json({ user, tokens });
   } catch (error) {
-    next(error);
+    return sendError(error, req, res, 400);
   }
 };
 
-const fetchAllPost = async (req, res, next) => {
-  try {
-    const {searchString, category} = req.query;
-    let query = {};
-
-    if(searchString){
-      const regex = new RegExp(searchString, 'i');
-      query.$or = [{ title: regex }, { description: regex }];
-    }
-
-    
-    if(category.length){
-      // const categoriesArray = category ? category.split(',') : [];
-      // const regexCategories = categoriesArray.map(category => new RegExp(category, 'i'));
-      query.category = { $in: category };
-    }
-    const allPosts = await getAllPosts(query);
-    return sendSuccessResponse(req, res, allPosts, allPosts?.length)
-  } catch (error) {
-    console.log(error);
-    next(error);
-  }
-}
-
-// const searchPost = async (req, res, next) => {
-//   try {    
-//     const {  searchString  } = req.body;
-//     const post = await getAllSearchPosts(searchString);
-//     return sendSuccessResponse(req, res, post, post?.length)
-//   } catch (error) {
-//     next(error);
-//   }
-// }
-
-// const searchPostsByCategory = async (req, res, next) => {
-//   try {    
-//     const { category } = req.query;
-//     const categoriesArray = category ? category.split(',') : [];
-//     const post = await getPostsByCategory(categoriesArray);
-//     return sendSuccessResponse(req, res, post, post?.length)
-//   } catch (error) {
-//     next(error);
-//   }
-// }
-
-const fetchBlockedUsers = async (req, res, next) => {
+const fetchBlockedUsers = async (req, res) => {
   try {
     const blockedUsersData = await getBlockedUsers();
-    // return res.json({ blockedUsers });
     return sendSuccessResponse(req, res, blockedUsersData, blockedUsersData?.length)
   } catch (error) {
-    next(error);
+    return sendError(error, req, res, 400);
   }
 }
 
-const UnblockedUsers = async (req, res, next) => {
+const UnblockedUsers = async (req, res) => {
   try {
     const userId = req?.params?.id;
 
     const updatedUser = await UserModel.findByIdAndUpdate(
       userId,
-      { $set: { isBlock: false, loginCount: 0 } }, // Unblock the user and reset loginCount
-      { new: true } // Return the updated document
+      { $set: { isBlock: false, loginCount: 0 } }, 
+      { new: true } 
     );
 
     if (!updatedUser) {
@@ -241,16 +107,16 @@ const UnblockedUsers = async (req, res, next) => {
     return sendSuccessResponse(req, res, updatedUser)
   } catch (error) {
     console.log(error);
-    next(error);
+    return sendError(error, req, res, 400);
   }
 }
 
-const logout = async (req, res, next) => {
+const logout = async (req, res) => {
   try {
     await clearRefreshToken(req.body.refreshToken);
     res.json({});
   } catch (error) {
-    next(error);
+    return sendError(error, req, res, 400);
   }
 };
 
@@ -331,11 +197,6 @@ export default {
   registerAdmin,
   googleUserRegister,
   fetchBlockedUsers,
-  UnblockedUsers,
-  createPost,
-  likePost,
-  fetchAllPost,
-  // searchPost,
-  // searchPostsByCategory,
+  UnblockedUsers,  
   googleUserLogin
 }

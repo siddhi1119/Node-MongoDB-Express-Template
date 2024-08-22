@@ -4,7 +4,10 @@ import userController from '../controllers/userController.js';
 import trimRequest from 'trim-request';
 import validate from '../utils/yupValidations.js';
 import adminSchemas from '../validations/adminValidation.js';
+import postSchemas from '../validations/postValidation.js';
 import authController from '../controllers/authController.js';
+import postController from '../controllers/postController.js';
+import postLikeController from '../controllers/postLikeController.js';
 
 
 const router = express.Router();
@@ -15,22 +18,14 @@ router
 
 router
   .route('/create-post')
-  .post(isActiveUser, validate(adminSchemas.postValidationSchema), authController.createPost)
+  .post(isActiveUser, validate(postSchemas.postValidationSchema), postController.createPost)
 
 router
   .route('/posts')
-  .get(authController.fetchAllPost)
-
-// router
-//   .route('/search-post')
-//   .get(authController.searchPost)
-
-// router
-//   .route('/search-posts-by-category')
-//   .get(authController.searchPostsByCategory)
+  .get(isActiveUser,postController.fetchAllPost)
 
   router
-  .route('/like/:postId')
-  .put(isActiveUser,authController.likePost)
+  .route('/like')
+  .put(isActiveUser,postLikeController.likePost)
 
 export default router;

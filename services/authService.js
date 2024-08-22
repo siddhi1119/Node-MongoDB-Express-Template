@@ -5,8 +5,6 @@ import httpStatus from 'http-status';
 import APIError from '../utils/APIError.js';
 import bcrypt from 'bcrypt';
 import { systemRoles } from '../utils/constant.js';
-import postModel from '../models/postModel.js';
-
 
 const createNewUser = async (user) => {
   const oldUser = await UserModel.findOne({ email: user.email.toLowerCase(), role: systemRoles.USER }).lean();
@@ -41,42 +39,6 @@ const getBlockedUsers = async () => {
   }
 }
 
-const getAllPosts = async (query) => {
-  try {
-    const posts = await postModel.find(query).lean();
-    return posts;
-  } catch (error) {
-    throw new Error("Error fetching blocked users: " + error.message);
-  }
-}
-
-// const getAllSearchPosts = async (searchQuery) => {
-//   try {
-//     const regex = new RegExp(searchQuery, 'i');
-//     const filteredPosts = await postModel.find({
-//       $or: [{ title: regex }, { description: regex }],
-//     }).lean();
-//     return filteredPosts;
-//   } catch (error) { 
-//     throw new Error("Error searching posts: " + error.message);
-//   }
-// }
-
-// const getPostsByCategory = async (category) => {
-//   try {
-//     if (!category || category.length === 0) {
-//       throw new Error("Categories are required for filtering");
-//     }
-//     const regexCategories = category.map(category => new RegExp(category, 'i'));
-//     const filteredPosts = await postModel.find({
-//       category: { $in: regexCategories }
-//     }).lean();
-
-//     return filteredPosts;
-//   } catch (error) {    
-//     throw new Error("Error searching posts: " + error.message);
-//   }
-// }
 
 const fetchAdminFromEmailAndPassword = async ({ email, password }) => {
   try {
@@ -215,8 +177,5 @@ export {
   updatePassword,
   createNewUser,
   createNewAdminUser,
-  getBlockedUsers,
-  // getAllSearchPosts,
-  // getPostsByCategory,
-  getAllPosts
+  getBlockedUsers
 };
