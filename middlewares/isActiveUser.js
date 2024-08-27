@@ -64,7 +64,7 @@ const isActiveAdmin = async (req, res, next) => {
       throw new APIError(httpStatus.FORBIDDEN, 'Invalid Access Token - logout');;
 
     const userData = {
-      name: userExists?.firstName ?? "" + userExists?.lastName ?? "",
+      name: (userExists?.firstName || "") + (userExists?.lastName ? ` ${userExists?.lastName}` : ""),
       _id: userExists?._id,
       role: userExists?.role
     };    

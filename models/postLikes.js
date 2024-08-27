@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const postLikesSchema = new mongoose.Schema({ 
   postId: {type: mongoose.Schema.Types.ObjectId, ref: 'Post', required:true},
   likedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'users', required:true},
-  name: {type: String, required: true }
+  name: {type: String}
 }, { timestamps: true });
 
 

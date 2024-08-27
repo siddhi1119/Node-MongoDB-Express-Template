@@ -8,6 +8,7 @@ import postSchemas from '../validations/postValidation.js';
 import authController from '../controllers/authController.js';
 import postController from '../controllers/postController.js';
 import postLikeController from '../controllers/postLikeController.js';
+import postCommentController from '../controllers/postCommentController.js';
 
 
 const router = express.Router();
@@ -24,8 +25,12 @@ router
   .route('/posts')
   .get(isActiveUser,postController.fetchAllPost)
 
-  router
+router
   .route('/like')
   .put(isActiveUser,postLikeController.likePost)
+
+router
+  .route("/comment") 
+  .post(isActiveUser, postCommentController.commentPost);
 
 export default router;

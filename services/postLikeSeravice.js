@@ -1,11 +1,10 @@
 import postLikesModel from '../models/postLikes.js';
-import postModel from '../models/postModel.js';
+import httpStatus from 'http-status';
+import APIError from '../utils/APIError.js';
 
-const postLikeAdded = async(postId,likedBy,name)=>{  
+const postLikeAdded = async({postId,likedBy,name})=>{  
     const isAlreadyLikedPost = await postLikesModel.findOne({postId,likedBy}).lean();
-    if (isAlreadyLikedPost) {
-        throw new APIError(httpStatus.BAD_REQUEST, "post already liked");
-      } else {
+    if (!isAlreadyLikedPost) {
         const newLike = await postLikesModel.create({
           postId,
           likedBy,
@@ -15,8 +14,13 @@ const postLikeAdded = async(postId,likedBy,name)=>{
       }
 }
 
+const postLikeRemove = async({postId,likedBy})=>{    
+  const disLikePost = await postLikesModel.deleteOne({postId,likedBy}).lean();  
+  return disLikePost;
+}
 
 
 export {  
-    postLikeAdded    
+    postLikeAdded,
+    postLikeRemove    
   };
