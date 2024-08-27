@@ -55,11 +55,26 @@ const getAllPosts = async ({
           },
         ],
       },
+    },{
+      $lookup: {
+        from: "postcomments",
+        localField: "_id",
+        foreignField: "postId",
+        as: "comments",
+        pipeline: [
+          {
+            $project: {
+              _id: 1 
+            },
+          },
+        ],
+      },
     },
     {
       $addFields: {
         likeCount: { $size: "$likes" },
         likeBy: { $map: { input: "$likes", as: "like", in: "$$like.likedBy" } },
+        commentCount: { $size: "$comments" },
       },
     },
     {
@@ -74,6 +89,7 @@ const getAllPosts = async ({
         createdBy: 1,
         likeCount: 1,
         likeBy: 1,
+        commentCount: 1,
       },
     },
     {

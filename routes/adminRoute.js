@@ -1,5 +1,5 @@
 import express from "express";
-import { isActiveAdmin, isActiveUser } from "../middlewares/isActiveUser.js";
+import { isActiveAdmin } from "../middlewares/isActiveUser.js";
 import authController from "../controllers/authController.js";
 import adminSchemas from "../validations/adminValidation.js";
 import postSchemas from "../validations/postValidation.js";
@@ -8,6 +8,7 @@ import postController from "../controllers/postController.js";
 import postLikeController from "../controllers/postLikeController.js";
 import parseCategoryMiddleware from "../middlewares/parseCategoryMiddleware.js";
 import postCommentController from "../controllers/postCommentController.js";
+import commentLikeController from "../controllers/commentLikeController.js";
 
 const router = express.Router();
 
@@ -43,6 +44,19 @@ router.route("/unlike")
 
 router.route("/comment")
       .post(isActiveAdmin, postCommentController.commentPost);
+  
+router
+      .route('/fetch-comments')
+      .get(isActiveAdmin,postCommentController.fetchAllcomments);
+
+router.route("/delete-comment")
+      .delete(isActiveAdmin, postCommentController.deleteComment);
+
+router.route("/comment-like")
+      .put(isActiveAdmin, commentLikeController.likeComment);
+
+router.route("/comment-dislike")
+      .put(isActiveAdmin, commentLikeController.unLikeComment);
 
 router.all("/unblocked-users", (req, res) => {
   res.status(400).json({

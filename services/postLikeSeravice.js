@@ -1,6 +1,4 @@
 import postLikesModel from '../models/postLikes.js';
-import httpStatus from 'http-status';
-import APIError from '../utils/APIError.js';
 
 const postLikeAdded = async({postId,likedBy,name})=>{  
     const isAlreadyLikedPost = await postLikesModel.findOne({postId,likedBy}).lean();
@@ -11,7 +9,9 @@ const postLikeAdded = async({postId,likedBy,name})=>{
           name
         });
         return newLike;
-      }
+      } else {
+        return sendError(error, req, res, 200);
+      }   
 }
 
 const postLikeRemove = async({postId,likedBy})=>{    
