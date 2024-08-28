@@ -22,30 +22,42 @@ router
 
 router
   .route('/posts')
-  .get(isActiveUser,postController.fetchAllPost)
+  .get(isActiveUser, postController.fetchAllPost)
 
 router
   .route('/like')
-  .put(isActiveUser,postLikeController.likePost)
+  .put(isActiveUser, postLikeController.likePost)
 
 router.route("/unlike")
   .put(isActiveUser, postLikeController.unLikePost);
 
 router
-  .route("/comment") 
+  .route("/comment")
   .post(isActiveUser, postCommentController.commentPost);
 
-  router
-  .route('/fetch-comments')
-  .get(isActiveUser,postCommentController.fetchAllcomments);
+router
+  .route("/edit-comment")
+  .put(isActiveUser, postCommentController.editComment);
 
-router.route("/delete-comment")
+router
+  .route('/fetch-comments')
+  .get(isActiveUser, postCommentController.fetchAllcomments);
+
+router
+  .route("/delete-comment")
   .delete(isActiveUser, postCommentController.deleteComment);
 
-router.route("/comment-like")
+router
+  .route("/comment-like")
   .put(isActiveUser, commentLikeController.likeComment);
 
-router.route("/comment-dislike")
+router
+  .route("/comment-dislike")
   .put(isActiveUser, commentLikeController.unLikeComment);
+
+router
+  .route("/reply-to-comment")
+  .post(isActiveUser, postCommentController.replyToComment);
+
 
 export default router;

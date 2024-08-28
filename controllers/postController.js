@@ -26,7 +26,8 @@ const fetchAllPost = async (req, res) => {
     const { searchString, page, limit } = req.query;
     const allPosts = await getAllPosts({ searchString, category:req.parsedCategory, page, limit }); 
     return sendSuccessResponse(req, res, allPosts, allPosts?.length);
-  } catch (error) {      
+  } catch (error) {     
+    console.log(error); 
     return sendError(error, req, res, 400);
   }
 };

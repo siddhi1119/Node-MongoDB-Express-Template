@@ -1,5 +1,6 @@
 import postCommentsModel from "../models/postComment.js";
 import postModel from "../models/postModel.js";
+import CommentsReplyModel from "../models/replyComment.js";
 
 const postCommentAdded = async (content, postId, commentBy, name) => {
   const addComment = await postCommentsModel.create({
@@ -11,7 +12,7 @@ const postCommentAdded = async (content, postId, commentBy, name) => {
   return addComment;
 };
 
-const getAllComments = async ({ postId,page = 1, limit = 10}) => {  
+const getAllComments = async ({ postId, page = 1, limit = 10 }) => {
   let matchConditions = {};
 
   if (postId) {
@@ -33,8 +34,8 @@ const getAllComments = async ({ postId,page = 1, limit = 10}) => {
         pipeline: [
           {
             $project: {
-              _id: 1,              
-              likedBy:1,           
+              _id: 1,
+              likedBy: 1,
             },
           },
         ],
@@ -43,11 +44,11 @@ const getAllComments = async ({ postId,page = 1, limit = 10}) => {
     {
       $addFields: {
         likeCount: { $size: "$likes" },
-        likeBy: { $map: { input: "$likes", as: "like", in: "$$like.likedBy" } }        
+        likeBy: { $map: { input: "$likes", as: "like", in: "$$like.likedBy" } }
       },
     },
     {
-      $sort : {createdAt : -1},
+      $sort: { createdAt: -1 },
     },
     {
       $project: {
@@ -69,9 +70,59 @@ const getAllComments = async ({ postId,page = 1, limit = 10}) => {
   return comments;
 };
 
-const commentDelete = async ( commentBy, commentId) => {
-  const deleteComment = await postCommentsModel.findOneAndDelete({ _id:commentId,commentBy});
-  return deleteComment;
+const commentEdit = async (commentBy, commentId, updatedContent) => {
+
+  if (!commentId) throw new Error('commentId is required');
+
+  if (!updatedContent) throw new Error('updatedContent is required');
+
+  const comment = await postCommentsModel.findOne({ _id: commentId }, { commentBy: 1 });
+
+  if (!comment)  throw new Error('Comment not found');
+  
+  if (comment.commentBy.toString() !== commentBy.toString())    throw new Error('Not authorized to edit this comment');
+  
+  const editedComment = await postCommentsModel.findByIdAndUpdate(commentId, { content: updatedContent }, { new: true });
+
+  if (!editedComment)   throw new Error('Failed to edit comment');
+  
+  return editedComment;
 };
 
-export { postCommentAdded,commentDelete,getAllComments };
+const commentDelete = async (commentBy, commentId) => {
+
+  if (!commentId) {
+    throw new Error('commentId is required');
+  }
+  const comment = await postCommentsModel.findOne({ _id: commentId }, { commentBy: 1 })
+  if (!comment) throw new Error('Comment not found');
+
+  if (comment.commentBy.toString() !== commentBy.toString()) throw new Error('Not authorized to delete this comment');
+
+  const deletedComment = await postCommentsModel.findByIdAndDelete(commentId);
+
+  if (!deletedComment) throw new Error('Failed to delete comment');
+
+  return deletedComment;
+};
+
+const addReplyToComment = async (parentCommentId, postId, commentBy, content) => {
+  if (!parentCommentId || !postId || !content)     throw new Error('parentCommentId, postId, and content are required');
+  
+  const parentComment = await postCommentsModel.findOne({
+    $and: [
+      { _id: parentCommentId },
+      { postId: postId }
+    ]
+  });
+
+  if (!parentComment) throw new Error('Parent comment not found or does not belong to the specified post');
+
+  const savedReply = await CommentsReplyModel.create({
+    content, postId, parentCommentId, commentBy
+  })
+
+  return savedReply;
+};
+
+export { postCommentAdded, commentDelete, getAllComments, commentEdit, addReplyToComment };

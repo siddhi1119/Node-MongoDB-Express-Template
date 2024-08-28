@@ -36,27 +36,42 @@ router
     postController.createPost
   );
 
-router.route("/like")
-      .put(isActiveAdmin, postLikeController.likePost);
-
-router.route("/unlike")
-      .put(isActiveAdmin, postLikeController.unLikePost);
-
-router.route("/comment")
-      .post(isActiveAdmin, postCommentController.commentPost);
-  
 router
-      .route('/fetch-comments')
-      .get(isActiveAdmin,postCommentController.fetchAllcomments);
+  .route("/like")
+  .put(isActiveAdmin, postLikeController.likePost);
 
-router.route("/delete-comment")
-      .delete(isActiveAdmin, postCommentController.deleteComment);
+router
+  .route("/unlike")
+  .put(isActiveAdmin, postLikeController.unLikePost);
 
-router.route("/comment-like")
-      .put(isActiveAdmin, commentLikeController.likeComment);
+router
+  .route("/comment")
+  .post(isActiveAdmin, postCommentController.commentPost);
 
-router.route("/comment-dislike")
-      .put(isActiveAdmin, commentLikeController.unLikeComment);
+router
+  .route("/edit-comment")
+  .put(isActiveAdmin, postCommentController.editComment);
+
+router
+  .route('/fetch-comments')
+  .get(isActiveAdmin, postCommentController.fetchAllcomments);
+
+router
+  .route("/delete-comment")
+  .delete(isActiveAdmin, postCommentController.deleteComment);
+
+router
+  .route("/comment-like")
+  .put(isActiveAdmin, commentLikeController.likeComment);
+
+router
+  .route("/comment-dislike")
+  .put(isActiveAdmin, commentLikeController.unLikeComment);
+
+router
+  .route("/reply-to-comment")
+  .post(isActiveAdmin, postCommentController.replyToComment);
+
 
 router.all("/unblocked-users", (req, res) => {
   res.status(400).json({

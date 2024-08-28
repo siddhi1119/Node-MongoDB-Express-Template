@@ -1,4 +1,7 @@
+import mongoose from "mongoose";
 import postModel from "../models/postModel.js";
+import { ObjectId } from "mongodb";
+
 
 const postCreate = async (title, imageUrl, description, category, user) => {
   const createdBy = {
@@ -38,7 +41,10 @@ const getAllPosts = async ({
 
   const posts = await postModel.aggregate([
     {
-      $match: matchConditions,
+      $match: {
+        ...matchConditions,
+        _id: new ObjectId("66c72c72b9dd40eeffd401cb")
+      },
     },
     {
       $lookup: {
@@ -49,13 +55,13 @@ const getAllPosts = async ({
         pipeline: [
           {
             $project: {
-              _id: 1,              
-              likedBy:1,           
+              _id: 1,
+              likedBy: 1,
             },
           },
         ],
       },
-    },{
+    }, {
       $lookup: {
         from: "postcomments",
         localField: "_id",
@@ -63,22 +69,45 @@ const getAllPosts = async ({
         as: "comments",
         pipeline: [
           {
-            $project: {
-              _id: 1 
+            $lookup: {
+              from: "commentreplies",
+              localField: "_id",
+              foreignField: "postId",
+              as: "replies",
+            },
+          },
+          {
+            $addFields: {
+              replyCount: { $size: { $ifNull: ["$replies", []] } },
+            },
+          },
+          {
+            $group: {
+              _id: "$_id",
+              commentCount: { $sum: 1 },
+              replyCount: { $sum: "$replyCount" },
             },
           },
         ],
       },
     },
+
     {
       $addFields: {
         likeCount: { $size: "$likes" },
         likeBy: { $map: { input: "$likes", as: "like", in: "$$like.likedBy" } },
-        commentCount: { $size: "$comments" },
+        commentCount: { $size: { $ifNull: ["$comments", []] } },
+        replycommentCount: { $sum: "$comments.replyCount" },
+        totalCommentCount: {
+          $add: [
+            { $size: { $ifNull: ["$comments", []] } }, 
+            { $sum: "$comments.replyCount" } 
+          ]
+        }
       },
     },
     {
-      $sort : {createdAt : -1},
+      $sort: { createdAt: -1 },
     },
     {
       $project: {
@@ -90,6 +119,8 @@ const getAllPosts = async ({
         likeCount: 1,
         likeBy: 1,
         commentCount: 1,
+        replycommentCount: 1,
+        totalCommentCount: 1,
       },
     },
     {
