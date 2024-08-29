@@ -5,6 +5,9 @@ import { uploadImage } from "../utils/imageUtils.js";
 const createPost = async (req, res) => {
   try {
     const { title, images, description, category } = req.body;
+    if (!images || !Array.isArray(images)) {
+      throw new Error("Images must be an array and cannot be empty");
+    }
     let imageUrl = await uploadImage(images);
     if (!imageUrl) throw new Error("Something wrong in image upload");
     const newPost = await postCreate(

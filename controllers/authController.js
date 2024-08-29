@@ -7,25 +7,36 @@ import {
   createNewAdminUser,
   fetchUserFromEmail,
   fetchAdminFromEmailAndPassword,
-  getBlockedUsers, 
-} from '../services/authService.js';
+  getBlockedUsers,
+  unblockUser,
+} from "../services/authService.js";
 import {
   generateAuthTokens,
   clearRefreshToken,
   verifyRefreshToken,
   generateAccessTokenFromRefreshTokenPayload,
-} from '../services/tokenService.js';
-import { OAuth2Client } from 'google-auth-library';
-import httpStatus from 'http-status';
-import APIError from '../utils/APIError.js';
-import { UserModel } from '../models/index.js';
-import { sendError, sendSuccessResponse } from '../utils/ApiResponse.js';
-
+} from "../services/tokenService.js";
+import { OAuth2Client } from "google-auth-library";
+import httpStatus from "http-status";
+import APIError from "../utils/APIError.js";
+import { UserModel } from "../models/index.js";
+import { sendError, sendSuccessResponse } from "../utils/ApiResponse.js";
+import { systemRoles } from "../utils/constant.js";
 
 const register = async (req, res) => {
-  const { firstName, lastName, hobby, role, loginCount, isBlock, gender, email, password, isAdminApproved, isDeleted } = req.body
+  const {
+    firstName,
+    lastName,
+    hobby,
+    loginCount,
+    isBlock,
+    gender,
+    email,
+    password,
+    isAdminApproved,
+    isDeleted,
+  } = req.body;
   try {
-
     const newUser = await createNewUser({
       firstName,
       lastName,
@@ -33,14 +44,14 @@ const register = async (req, res) => {
       hobby,
       email,
       password,
-      role,
+      role: systemRoles.USER,
       loginCount,
       isBlock,
       isAdminApproved,
       isDeleted,
-      source: "email"
+      source: "email",
     });
-    const tokens = await generateAuthTokens(newUser)
+    const tokens = await generateAuthTokens(newUser);
     res.json({ user: newUser, tokens });
   } catch (error) {
     return sendError(error, req, res, 400);
@@ -48,14 +59,14 @@ const register = async (req, res) => {
 };
 
 const registerAdmin = async (req, res) => {
-  const { email, password, role } = req.body
+  const { email, password, role } = req.body;
   try {
     const newUser = await createNewAdminUser({
       email,
       password,
-      role
+      role,
     });
-    const tokens = await generateAuthTokens(newUser)
+    const tokens = await generateAuthTokens(newUser);
     res.json({ user: newUser, tokens });
   } catch (error) {
     return sendError(error, req, res, 400);
@@ -85,31 +96,27 @@ const loginAdmin = async (req, res) => {
 const fetchBlockedUsers = async (req, res) => {
   try {
     const blockedUsersData = await getBlockedUsers();
-    return sendSuccessResponse(req, res, blockedUsersData, blockedUsersData?.length)
+    return sendSuccessResponse(
+      req,
+      res,
+      blockedUsersData,
+      blockedUsersData?.length
+    );
   } catch (error) {
     return sendError(error, req, res, 400);
   }
-}
+};
 
 const UnblockedUsers = async (req, res) => {
   try {
     const userId = req?.params?.id;
-
-    const updatedUser = await UserModel.findByIdAndUpdate(
-      userId,
-      { $set: { isBlock: false, loginCount: 0 } }, 
-      { new: true } 
-    );
-
-    if (!updatedUser) {
-      throw new APIError(httpStatus.BAD_REQUEST, "User not found");
-    }
-    return sendSuccessResponse(req, res, updatedUser)
+    const updatedUser = await unblockUser(userId);
+    return sendSuccessResponse(req, res, updatedUser);
   } catch (error) {
     console.log(error);
     return sendError(error, req, res, 400);
   }
-}
+};
 
 const logout = async (req, res) => {
   try {
@@ -147,36 +154,35 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const googleUserRegister = async (req, res, next) => {
   try {
-    const { token } = req.body
+    const { token } = req.body;
     const ticket = await client.verifyIdToken({
       idToken: token,
-      audience: process.env.CLIENT_ID
+      audience: process.env.CLIENT_ID,
     });
     const { name, email, picture } = ticket.getPayload();
     const newUser = await createNewUser({
       email: email,
       name: name,
       image: picture,
-      source: "google"
+      source: "google",
     });
-    const tokens = await generateAuthTokens(newUser)
+    const tokens = await generateAuthTokens(newUser);
     res.json({ user: newUser, tokens });
   } catch (error) {
     next(error);
   }
-
-}
+};
 const googleUserLogin = async (req, res, next) => {
   try {
-    console.log("dd")
-    const { token } = req.body
+    console.log("dd");
+    const { token } = req.body;
     const ticket = await client.verifyIdToken({
       idToken: token,
-      audience: process.env.CLIENT_ID
+      audience: process.env.CLIENT_ID,
     });
     const { email } = ticket.getPayload();
     const user = await fetchUserFromEmail({ email });
@@ -185,7 +191,7 @@ const googleUserLogin = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-}
+};
 
 export default {
   login,
@@ -197,6 +203,6 @@ export default {
   registerAdmin,
   googleUserRegister,
   fetchBlockedUsers,
-  UnblockedUsers,  
-  googleUserLogin
-}
+  UnblockedUsers,
+  googleUserLogin,
+};
