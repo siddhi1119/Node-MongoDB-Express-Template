@@ -9,6 +9,7 @@ import postLikeController from "../controllers/postLikeController.js";
 import parseCategoryMiddleware from "../middlewares/parseCategoryMiddleware.js";
 import postCommentController from "../controllers/postCommentController.js";
 import commentLikeController from "../controllers/commentLikeController.js";
+import commentReplyLikeController from "../controllers/commentReplyLikeController.js";
 
 const router = express.Router();
 
@@ -53,7 +54,7 @@ router
   .put(isActiveAdmin, postCommentController.editComment);
 
 router
-  .route('/fetch-comments')
+  .route('/fetch-comments/:id')
   .get(isActiveAdmin, postCommentController.fetchAllcomments);
 
 router
@@ -69,10 +70,29 @@ router
   .put(isActiveAdmin, commentLikeController.unLikeComment);
 
 router
-  .route("/reply-to-comment")
+  .route("/reply-to-comment/:id")
   .post(isActiveAdmin, postCommentController.replyToComment);
 
+router
+  .route("/edit-reply-comment/:id")
+  .put(isActiveAdmin, postCommentController.editReplyComment);
 
+router
+  .route("/delete-reply-comment/:id")
+  .delete(isActiveAdmin, postCommentController.deleteReplyComment);
+
+router
+  .route("/like-reply-comment")
+  .put(isActiveAdmin, commentReplyLikeController.likeReplyComment);
+
+router
+  .route("/dislike-reply-comment/:id")
+  .put(isActiveAdmin, commentReplyLikeController.unLikeReplyComment);
+
+router
+  .route("/reply-comment/:id")
+  .get(isActiveAdmin, commentReplyLikeController.fetchReplyComment);
+  
 router.all("/unblocked-users", (req, res) => {
   res.status(400).json({
     status: "error",

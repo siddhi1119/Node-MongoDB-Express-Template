@@ -59,5 +59,12 @@ router
   .route("/reply-to-comment")
   .post(isActiveUser, postCommentController.replyToComment);
 
+router
+  .route("/edit-reply-comment")
+  .put(isActiveUser, postCommentController.editReplyComment);
+
+router
+  .route("/delete-reply-comment")
+  .delete(isActiveUser, postCommentController.deleteReplyComment);
 
 export default router;

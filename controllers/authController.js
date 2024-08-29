@@ -27,17 +27,17 @@ const register = async (req, res) => {
   try {
 
     const newUser = await createNewUser({
-      firstName: firstName,
-      lastName: lastName,
-      gender: gender,
-      hobby: hobby,
-      email: email,
-      password: password,
-      role: role,
-      loginCount: loginCount,
-      isBlock: isBlock,
-      isAdminApproved: isAdminApproved,
-      isDeleted: isDeleted,
+      firstName,
+      lastName,
+      gender,
+      hobby,
+      email,
+      password,
+      role,
+      loginCount,
+      isBlock,
+      isAdminApproved,
+      isDeleted,
       source: "email"
     });
     const tokens = await generateAuthTokens(newUser)

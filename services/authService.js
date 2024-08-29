@@ -95,8 +95,8 @@ const fetchUserFromEmailAndPassword = async ({ email, password }) => {
       throw new APIError(httpStatus.BAD_REQUEST, 'Your account is not approved. Please contact an admin for assistance.');
     }
 
-    await UserModel.findOneAndUpdate({ email: user.email }, { $set: { loginCount: 0, isBlock: false } });
-    return user;
+    const updatedUser = await UserModel.findOneAndUpdate({ email: user.email , role: systemRoles.USER }, { $set: { loginCount: 0, isBlock: false } }, { new: true });
+    return updatedUser;
   } catch (err) {
     console.log(err);
     throw new APIError(httpStatus.BAD_REQUEST, err.message || 'An error occurred');

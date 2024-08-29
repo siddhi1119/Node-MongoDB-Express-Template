@@ -4,7 +4,7 @@ import { commentLikeAdded, commentLikeRemove } from "../services/commentLikeServ
 import { sendError, sendSuccessResponse } from "../utils/ApiResponse.js";
 
 const likeComment = async (req, res) => {
-  const { commentId } = req.body;
+  const { commentId } = req.query;
   const likedBy = req?.user?._id + "";
   const name = req?.user?.name;
 
@@ -33,7 +33,7 @@ const likeComment = async (req, res) => {
 };
 
 const unLikeComment = async (req, res) => {
-  const { commentId } = req.body;
+  const { commentId } = req.query;
   const likedBy = req?.user?._id + "";
 
   if (!commentId) {

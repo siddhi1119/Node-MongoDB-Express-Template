@@ -8,11 +8,20 @@ import schemas from '../validations/authValidations.js';
 
 const router = express.Router();
 
+
+router
+  .route('/register')
+  .post(trimRequest.all, validate(schemas.registerSchema), controller.register);
+
+router
+  .route('/register-admin')
+  .post(trimRequest.all, validate(schemas.registerAdminSchema), controller.registerAdmin);
+
 router
   .route('/login')
   .post(trimRequest.all, validate(schemas.loginSchema), controller.login);
-  
-  router
+
+router
   .route('/login-admin')
   .post(trimRequest.all, validate(schemas.loginSchema), controller.loginAdmin);
 
@@ -24,13 +33,6 @@ router
   .route('/refresh-token')
   .post(trimRequest.all, validate(schemas.refreshTokenSchema), controller.refreshToken);
 
-router
-  .route('/register')
-  .post(trimRequest.all, validate(schemas.registerSchema), controller.register);
-
-router
-  .route('/register-admin')
-  .post(trimRequest.all, validate(schemas.registerAdminSchema), controller.registerAdmin);
 
 router
   .route('/reset-password')
@@ -56,5 +58,5 @@ router
     validate(schemas.googleUserSchema),
     controller.googleUserLogin
   )
- 
+
 export default router;

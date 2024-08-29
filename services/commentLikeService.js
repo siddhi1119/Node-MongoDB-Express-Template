@@ -16,7 +16,7 @@ const commentLikeAdded = async({commentId,likedBy,name})=>{
 }
 
 const commentLikeRemove = async({commentId,likedBy})=>{    
-  const disLikePost = await commentLikesModel.deleteOne({commentId,likedBy}).lean();  
+  const disLikePost = await commentLikesModel.findByIdAndDelete({commentId,likedBy}).lean();  
   return disLikePost;
 }
 
