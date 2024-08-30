@@ -76,9 +76,9 @@ const schemas = {
           'number.integer': 'Login count must be an integer',
           'number.min': 'Login count cannot be negative',
         }),
-      isBlock: Joi.boolean().default(false).required(),
-      isAdminApproved: Joi.boolean().default(false).required(),
-      isDeleted: Joi.boolean().default(false).required(),
+      isBlock: Joi.boolean().default(false),
+      isAdminApproved: Joi.boolean().default(false),
+      isDeleted: Joi.boolean().default(false),
     }).required().unknown(false), // Enforce no additional properties
   }),
 

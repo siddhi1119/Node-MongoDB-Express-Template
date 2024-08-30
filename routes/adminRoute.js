@@ -18,7 +18,7 @@ router
   .get(isActiveAdmin, authController.fetchBlockedUsers);
 
 router
-  .route("/unblocked-users/:id")
+  .route("/unblocked-user/:id")
   .put(
     isActiveAdmin,
     validate(adminSchemas.blockUserSchema),
@@ -38,19 +38,19 @@ router
   );
 
 router
-  .route("/like")
+  .route("/like/:id")
   .put(isActiveAdmin, postLikeController.likePost);
 
 router
-  .route("/unlike")
+  .route("/unlike/:id")
   .put(isActiveAdmin, postLikeController.unLikePost);
 
 router
-  .route("/comment")
+  .route("/comment/:id")
   .post(isActiveAdmin, postCommentController.commentPost);
 
 router
-  .route("/edit-comment")
+  .route("/edit-comment/:id")
   .put(isActiveAdmin, postCommentController.editComment);
 
 router
@@ -58,7 +58,7 @@ router
   .get(isActiveAdmin, postCommentController.fetchAllcomments);
 
 router
-  .route("/delete-comment")
+  .route("/delete-comment/:id")
   .delete(isActiveAdmin, postCommentController.deleteComment);
 
 router

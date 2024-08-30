@@ -144,7 +144,7 @@ const postCreate = async (title, imageUrl, description, category, user) => {
 
 const getAllPosts = async ({
   searchString,
-  parsedCategory,
+  parsedCategory=[],
   page = 1,
   limit = 10,
 }) => {

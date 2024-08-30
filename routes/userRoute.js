@@ -8,6 +8,7 @@ import postController from '../controllers/postController.js';
 import postLikeController from '../controllers/postLikeController.js';
 import postCommentController from '../controllers/postCommentController.js';
 import commentLikeController from '../controllers/commentLikeController.js';
+import commentReplyLikeController from '../controllers/commentReplyLikeController.js';
 
 
 const router = express.Router();
@@ -25,26 +26,27 @@ router
   .get(isActiveUser, postController.fetchAllPost)
 
 router
-  .route('/like')
-  .put(isActiveUser, postLikeController.likePost)
+  .route("/like/:id")
+  .put(isActiveUser, postLikeController.likePost);
 
-router.route("/unlike")
+router
+  .route("/unlike/:id")
   .put(isActiveUser, postLikeController.unLikePost);
 
 router
-  .route("/comment")
+  .route("/comment/:id")
   .post(isActiveUser, postCommentController.commentPost);
 
 router
-  .route("/edit-comment")
+  .route("/edit-comment/:id")
   .put(isActiveUser, postCommentController.editComment);
 
 router
-  .route('/fetch-comments')
+  .route('/fetch-comments/:id')
   .get(isActiveUser, postCommentController.fetchAllcomments);
 
-router
-  .route("/delete-comment")
+  router
+  .route("/delete-comment/:id")
   .delete(isActiveUser, postCommentController.deleteComment);
 
 router
@@ -56,15 +58,29 @@ router
   .put(isActiveUser, commentLikeController.unLikeComment);
 
 router
-  .route("/reply-to-comment")
+  .route("/reply-to-comment/:id")
   .post(isActiveUser, postCommentController.replyToComment);
 
 router
-  .route("/edit-reply-comment")
+  .route("/edit-reply-comment/:id")
   .put(isActiveUser, postCommentController.editReplyComment);
 
 router
-  .route("/delete-reply-comment")
+  .route("/delete-reply-comment/:id")
   .delete(isActiveUser, postCommentController.deleteReplyComment);
+
+router
+  .route("/like-reply-comment")
+  .put(isActiveUser, commentReplyLikeController.likeReplyComment);
+
+router
+  .route("/dislike-reply-comment/:id")
+  .put(isActiveUser, commentReplyLikeController.unLikeReplyComment);
+
+router
+  .route("/reply-comment/:id")
+  .get(isActiveUser, commentReplyLikeController.fetchReplyComment)
+
+
 
 export default router;

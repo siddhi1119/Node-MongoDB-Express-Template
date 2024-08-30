@@ -27,7 +27,8 @@ const createPost = async (req, res) => {
 const fetchAllPost = async (req, res) => {
   try {
     const { searchString, page, limit } = req.query;
-    const allPosts = await getAllPosts({ searchString, category:req.parsedCategory, page, limit }); 
+    const parsedCategory = req.parsedCategory || [];
+    const allPosts = await getAllPosts({ searchString, parsedCategory, page, limit }); 
     return sendSuccessResponse(req, res, allPosts, allPosts?.length);
   } catch (error) {     
     console.log(error); 

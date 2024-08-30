@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true }, //unique: true
     password: { type: String, required: true },
     role: { type: String },
-    loginCount: { type: Number },
+    loginCount: { type: Number , default:0 },
     isBlock: { type: Boolean , default:false},
     isAdminApproved: { type: Boolean,default:false },
     isDeleted : { type: Boolean ,default:false}

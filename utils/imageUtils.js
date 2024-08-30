@@ -2,14 +2,14 @@ import axios from "axios";
 import FormData from "form-data";
 
 
-const uploadImage = async (image) => {
-    if (!image) return null;
+const uploadImage = async (images) => {
+    if (!images) return null;
 
     const imgbbApiKey = process?.env?.IMGBB_API_KEY;
 
-    const imageUploadPromises = image.map(async (images) => {
+    const imageUploadPromises = images.map(async (image) => {
         const formData = new FormData();
-        formData.append('image', images);
+        formData.append('image', image);
 
         let config = {
             method: 'post',

@@ -5,7 +5,7 @@ import postModel from "../models/postModel.js";
 
 
 const likePost = async (req, res) => {
-  const { postId } = req.body;
+  const { id: postId } = req.params;
   const likedBy = req?.user?._id + "";
   const name = req?.user?.name;
 
@@ -23,8 +23,12 @@ const likePost = async (req, res) => {
       return sendError('Invalid postId: Post does not exist', req, res, 400);
     }
     const newLike = await postLikeAdded({ postId, likedBy, name });
-    return sendSuccessResponse(req, res, newLike, newLike?.length);
-
+    
+    if (newLike) {
+      return sendSuccessResponse(req, res, newLike, newLike?.length);
+    } else {
+      return sendError('Post is already liked', req, res, 200);
+    }
   } catch (error) {
     console.log(error);
     return sendError(error, req, res, 400);
@@ -32,7 +36,7 @@ const likePost = async (req, res) => {
 };
 
 const unLikePost = async (req, res) => {
-  const { postId } = req.body;
+  const { id: postId } = req.params;
   const likedBy = req?.user?._id + "";
 
   if (!postId) {

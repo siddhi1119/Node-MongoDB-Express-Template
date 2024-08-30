@@ -21,7 +21,7 @@ const validate = (schema) => async (req, res, next) => {
     // Send a response with a 400 status code and a descriptive error message
     res.status(400).json({
       status: 'error',
-      message: 'Validation failed',
+      message: errors[0],
       errors: errors,
     });
   }

@@ -2,10 +2,11 @@ import { sendError, sendSuccessResponse } from "../utils/ApiResponse.js";
 import { addReplyToComment, commentDelete, editCommentOrReply, getAllComments, postCommentAdded } from "../services/postCommentService.js";
 import CommentsReplyModel from "../models/replyComment.js";
 import postCommentsModel from "../models/postComment.js";
+import mongoose from "mongoose";
 
 const commentPost = async (req, res) => {
   const { content } = req.body;
-  const { postId } = req.query;
+  const { id:postId } = req.params;
   const commentBy = req?.user?._id + "";
   const name = req?.user?.name;
 
@@ -31,7 +32,7 @@ const fetchAllcomments = async (req, res) => {
 };
 
 const deleteComment = async (req, res) => {
-  const { commentId } = req.query;
+  const { id: commentId } = req.params;
   const commentBy = req?.user?._id + "";
   try {
     const deletedComment = await commentDelete(commentBy, commentId);
@@ -43,15 +44,14 @@ const deleteComment = async (req, res) => {
 }
 
 const editComment = async (req, res) => {
-  const { commentId } = req.query;
+  const { id:commentId } = req.params;
   const { updatedContent } = req.body;
   const commentBy = req?.user?._id + "";
-
   try {
     const editedComment = await editCommentOrReply(postCommentsModel, commentBy, commentId, updatedContent);
     return sendSuccessResponse(req, res, editedComment);
   } catch (error) {
-    return sendError(error.message, req, res, 400);
+    return sendError(error, req, res, 400);
   }
 }
 
