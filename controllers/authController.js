@@ -9,6 +9,7 @@ import {
   fetchAdminFromEmailAndPassword,
   getBlockedUsers,
   unblockUser,
+  getAllUsers,
 } from "../services/authService.js";
 import {
   generateAuthTokens,
@@ -107,6 +108,23 @@ const fetchBlockedUsers = async (req, res) => {
   }
 };
 
+const fetchAllUser = async (req, res) => {
+  try {
+    const {email} = req.query;
+    const fetchUsersData = await getAllUsers(email);
+    return sendSuccessResponse(
+      req,
+      res,
+      fetchUsersData,
+      fetchUsersData?.length
+    );
+  } catch (error) {
+    console.log(error);
+    
+    return sendError(error, req, res, 400);
+  }
+};
+
 const UnblockedUsers = async (req, res) => {
   try {
     const userId = req?.params?.id;
@@ -196,6 +214,7 @@ const googleUserLogin = async (req, res, next) => {
 export default {
   login,
   loginAdmin,
+  fetchAllUser,
   logout,
   refreshToken,
   resetPassword,

@@ -54,6 +54,16 @@ const getBlockedUsers = async () => {
   }
 };
 
+
+const getAllUsers = async (email) => {
+  try {
+    const allUsers = await UserModel.find({email}).lean();
+    return allUsers;
+  } catch (error) {
+    throw new Error("Error fetching users: " + error.message);
+  }
+};
+
 const unblockUser = async (userId) => {
   const user = await UserModel.findById(userId);
 
@@ -240,4 +250,5 @@ export {
   createNewAdminUser,
   getBlockedUsers,
   unblockUser,
+  getAllUsers
 };

@@ -26,6 +26,10 @@ router
   .post(trimRequest.all, validate(schemas.loginSchema), controller.loginAdmin);
 
 router
+  .route('/all-user')
+  .get(trimRequest.all, controller.fetchAllUser);
+
+router
   .route('/logout')
   .post(trimRequest.all, validate(schemas.logoutSchema), controller.logout);
 
