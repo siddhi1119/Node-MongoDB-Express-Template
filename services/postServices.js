@@ -13,7 +13,7 @@ const postCreate = async (title, imageUrl, description, category, user) => {
     images: imageUrl,
     description,
     category,
-    createdBy: createdBy,
+    createdBy: createdBy    
   });
   return newPost;
 };
@@ -147,7 +147,10 @@ const getAllPosts = async ({
   parsedCategory=[],
   page = 1,
   limit = 10,
+  
 }) => {
+
+  
   // const parsedCategory = JSON.parse(category ?? "[]");
   let matchConditions = {};
 
@@ -156,20 +159,29 @@ const getAllPosts = async ({
     matchConditions.$or = [{ title: regex }, { description: regex }];
   }
 
+  // if (Array.isArray(parsedCategory) && parsedCategory.length > 0) {
+  //   matchConditions.category = { $in: parsedCategory };
+  // } else {
+  //   matchConditions.category = { $exists: true }; // or use any default filter if needed
+  // }
+
   if (parsedCategory?.length > 0) {
     matchConditions.category = { $in: parsedCategory };
   }
+
+  const totalPosts = await postModel.aggregate([
+    { $match: matchConditions },
+    { $count: "total" },
+  ]);
+
+  const totalCount = totalPosts.length > 0 ? totalPosts[0].total : 0;
+  const totalPages = Math.ceil(totalCount / limit);
 
   const skip = (parseInt(page) - 1) * parseInt(limit);
 
   const posts = await postModel.aggregate([
     {
-      $match: matchConditions,
-      //  {
-        // matchConditions,
-        // _id: new ObjectId("66c72c72b9dd40eeffd401cb"),
-        // _id: new ObjectId("66c6e117ab51a2bd8f1ce42f"),
-      // },
+      $match: matchConditions, 
     },
     {
       $lookup: {
@@ -240,8 +252,9 @@ const getAllPosts = async ({
         description: 1,
         category: 1,
         createdBy: 1,
+        createdAt:1,
         likeCount: 1,
-        likeBy: 1,
+        likeBy: 1,        
         // commentCount: 1,
         // replycommentCount: 1,
         totalCommentCount: 1,           
@@ -255,7 +268,11 @@ const getAllPosts = async ({
     },
   ]);
 
-  return posts;
+  return {
+    posts,
+    totalPages,
+    totalCount,
+  };
 };
 
 export { postCreate, getAllPosts };

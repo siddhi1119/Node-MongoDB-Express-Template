@@ -21,9 +21,9 @@ router
   .route('/create-post')
   .post(isActiveUser, validate(postSchemas.postValidationSchema), postController.createPost)
 
-router
-  .route('/posts')
-  .get(isActiveUser, postController.fetchAllPost)
+  router
+  .route("/posts")
+  .get(isActiveUser, postController.fetchAllPost);
 
 router
   .route("/like/:id")

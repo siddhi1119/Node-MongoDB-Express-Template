@@ -13,7 +13,8 @@ const postSchema = new mongoose.Schema({
     name:{type: String},    
     role: {type: String, required: true},
   },
-}, { timestamps: true });
+  createdAt: {type: Date, default: Date.now},
+});
 
 
 const postModel = mongoose.model('Post', postSchema);

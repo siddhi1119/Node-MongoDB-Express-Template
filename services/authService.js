@@ -54,6 +54,18 @@ const getBlockedUsers = async () => {
   }
 };
 
+const getUnApprovedUsers = async () => {
+  try {
+    const approvedUsers = await UserModel.find({
+      isAdminApproved : false,
+      role: systemRoles.USER,
+      isDeleted: false,
+    }).lean();
+    return approvedUsers;
+  } catch (error) {
+    throw new Error("Error fetching unapproved users: " + error.message);
+  }
+};
 
 const getAllUsers = async (email) => {
   try {
@@ -82,6 +94,23 @@ const unblockUser = async (userId) => {
   );
 
   return updatedUser;
+};
+
+
+const unapprovedUser = async (userId) => {
+  const user = await UserModel.findById(userId);
+
+  if (!user) {
+    throw new APIError(httpStatus.BAD_REQUEST, "User not found");
+  }
+
+  const approvedUser = await UserModel.findByIdAndUpdate(
+    userId,
+    { $set: { isAdminApproved : true } },
+    { new: true }
+  );
+
+  return approvedUser;
 };
 
 const fetchAdminFromEmailAndPassword = async ({ email, password }) => {
@@ -250,5 +279,7 @@ export {
   createNewAdminUser,
   getBlockedUsers,
   unblockUser,
-  getAllUsers
+  getAllUsers,
+  getUnApprovedUsers,
+  unapprovedUser
 };

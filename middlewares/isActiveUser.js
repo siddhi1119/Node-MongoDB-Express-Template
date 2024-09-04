@@ -9,6 +9,7 @@ import { verify } from '../utils/jwtHelpers.js';
 import { systemRoles } from '../utils/constant.js';
 
 
+
 const isActiveUser = async (req, res, next) => {
   try {
     const accessToken = req.get('Authorization');
@@ -52,13 +53,14 @@ const isActiveAdmin = async (req, res, next) => {
     let tokenPayload = await verify(accessToken, process.env.JWT_SECRET);
     if (!tokenPayload || tokenPayload.type !== tokenTypes.ACCESS){
       throw new APIError(httpStatus.UNAUTHORIZED, 'Invalid Access Token');}
-
+  
     let userExists = await UserModel.findOne({
       _id: tokenPayload.userId,
       isDeleted: false,
       isBlock: false,
       role: systemRoles.ADMIN
     });
+
 
     if (!userExists)
       throw new APIError(httpStatus.FORBIDDEN, 'Invalid Access Token - logout');;

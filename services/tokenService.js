@@ -58,11 +58,11 @@ const generateAuthTokens = async (user) => {
   );
  
   await saveRefreshToken(user._id, loginTime, refreshToken);
-  
-  return {
-    accessToken,
-    refreshToken,
-  };
+  return accessToken
+  // return {
+  //   accessToken,
+  //    refreshToken,
+  // };
 };
 
 

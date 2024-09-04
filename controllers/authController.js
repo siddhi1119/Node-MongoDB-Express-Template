@@ -10,6 +10,8 @@ import {
   getBlockedUsers,
   unblockUser,
   getAllUsers,
+  getUnApprovedUsers,
+  unapprovedUser,
 } from "../services/authService.js";
 import {
   generateAuthTokens,
@@ -108,9 +110,23 @@ const fetchBlockedUsers = async (req, res) => {
   }
 };
 
+const fetchUnApprovedUser = async (req, res) => {
+  try {
+    const approvedUsersData = await getUnApprovedUsers();
+    return sendSuccessResponse(
+      req,
+      res,
+      approvedUsersData,
+      approvedUsersData?.length
+    );
+  } catch (error) {
+    return sendError(error, req, res, 400);
+  }
+};
+
 const fetchAllUser = async (req, res) => {
   try {
-    const {email} = req.query;
+    const { email } = req.query;
     const fetchUsersData = await getAllUsers(email);
     return sendSuccessResponse(
       req,
@@ -120,7 +136,6 @@ const fetchAllUser = async (req, res) => {
     );
   } catch (error) {
     console.log(error);
-    
     return sendError(error, req, res, 400);
   }
 };
@@ -129,6 +144,17 @@ const UnblockedUsers = async (req, res) => {
   try {
     const userId = req?.params?.id;
     const updatedUser = await unblockUser(userId);
+    return sendSuccessResponse(req, res, updatedUser);
+  } catch (error) {
+    console.log(error);
+    return sendError(error, req, res, 400);
+  }
+};
+
+const unApprovedUser = async (req, res) => {
+  try {
+    const userId = req?.params?.id;
+    const updatedUser = await unapprovedUser(userId);
     return sendSuccessResponse(req, res, updatedUser);
   } catch (error) {
     console.log(error);
@@ -222,6 +248,8 @@ export default {
   registerAdmin,
   googleUserRegister,
   fetchBlockedUsers,
+  fetchUnApprovedUser,
   UnblockedUsers,
   googleUserLogin,
+  unApprovedUser
 };

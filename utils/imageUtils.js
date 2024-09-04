@@ -21,9 +21,10 @@ const uploadImage = async (images) => {
             data: formData
         };
     
-
+        console.log("config",config);
     try{
         const response = await axios.request(config);
+        console.log("response",response);
         return response?.data?.data?.display_url;
     } catch (error){
         console.error('Error uploading image:', error);

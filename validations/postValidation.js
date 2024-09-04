@@ -8,7 +8,7 @@ const schemas = {
         'string.empty': 'Title is required',
       }),
      images: Joi.array().items(
-        Joi.string().required().messages({
+        Joi.string().required().base64().messages({
           'string.empty': 'Each image URL is required',
         })),
       description: Joi.string().required().messages({
@@ -23,5 +23,7 @@ const schemas = {
     }).required().unknown(false),
   }),
 };
+
+
 
 export default schemas;

@@ -26,8 +26,19 @@ router
   );
 
 router
+  .route("/unapproved-user")
+  .get(isActiveAdmin, authController.fetchUnApprovedUser);
+
+router
+  .route("/unapproved-user/:id")
+  .put(
+    isActiveAdmin,
+    authController.unApprovedUser
+  );
+
+router
   .route("/posts")
-  .get(isActiveAdmin, parseCategoryMiddleware, postController.fetchAllPost);
+  .get(isActiveAdmin, postController.fetchAllPost);
 
 router
   .route("/create-post")
