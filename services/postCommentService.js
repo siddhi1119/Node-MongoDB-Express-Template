@@ -117,7 +117,7 @@ const commentDelete = async (model,commentBy, commentId) => {
   return deletedComment;
 };
 
-const addReplyToComment = async (parentCommentId, postId, commentBy, content) => {
+const addReplyToComment = async (parentCommentId, postId, commentBy, content, name) => {
   if (!parentCommentId || !postId || !content)     throw new Error('parentCommentId, postId, and content are required');
   
   const parentComment = await postCommentsModel.findOne({
@@ -130,7 +130,7 @@ const addReplyToComment = async (parentCommentId, postId, commentBy, content) =>
   if (!parentComment) throw new Error('Parent comment not found or does not belong to the specified post');
 
   const savedReply = await CommentsReplyModel.create({
-    content, postId, parentCommentId, commentBy
+    content, postId, parentCommentId, commentBy , name
   })
 
   return savedReply;

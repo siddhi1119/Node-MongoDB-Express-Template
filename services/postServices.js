@@ -13,157 +13,58 @@ const postCreate = async (title, imageUrl, description, category, user) => {
     images: imageUrl,
     description,
     category,
-    createdBy: createdBy    
+    createdBy: createdBy
   });
   return newPost;
 };
 
-// const getAllPosts = async ({
-//   searchString,
-//   parsedCategory,
-//   page = 1,
-//   limit = 10,
-// }) => {
-//   // const parsedCategory = JSON.parse(category ?? "[]");
-//   let matchConditions = {};
+const postEdit = async (postId, updatedFields, user) => {
+  const createdBy = {
+    id: user?._id,
+    name: user?.name,
+    role: user?.role,
+  };
+  updatedFields.createdBy = createdBy;
+  const updatedPost = await postModel.findByIdAndUpdate(
+    postId,
+    { $set: updatedFields },
+    { new: true }
+  );
+  return updatedPost;
+};
 
-//   if (searchString) {
-//     const regex = new RegExp(searchString, "i");
-//     matchConditions.$or = [{ title: regex }, { description: regex }];
-//   }
+const postDelete = async ({ postId, createdBy }) => {
+  if (!postId) {
+    throw new Error('postID is required');
+  }
+  const post = await postModel.findOne({ _id: postId }, { createdBy: 1 })
+  console.log("post", post);
+  if (!post) throw new Error('post not found');
 
-//   if (parsedCategory?.length > 0) {
-//     matchConditions.category = { $in: parsedCategory };
-//   }
+  if (post?.createdBy?.id.toString() !== createdBy.toString()) throw new Error('Not authorized to delete this post');
 
-//   const skip = (parseInt(page) - 1) * parseInt(limit);
+  const deletedPost = await postModel.findByIdAndDelete(postId);
 
-//   const posts = await postModel.aggregate([
-//     {
-//       $match: {
-//         ...matchConditions,
-//         _id: new ObjectId("66c72c72b9dd40eeffd401cb"),
-//         // _id: new ObjectId("66c6e117ab51a2bd8f1ce42f"),
-//       },
-//     },
-//     {
-//       $lookup: {
-//         from: "postlikes",
-//         localField: "_id",
-//         foreignField: "postId",
-//         as: "likes",
-//         pipeline: [
-//           {
-//             $project: {
-//               _id: 1,
-//               likedBy: 1,
-//             },
-//           },
-//         ],
-//       },
-//     }, {
-//       $lookup: {
-//         from: "postcomments",
-//         localField: "_id",
-//         foreignField: "postId",
-//         as: "comments",
-//         pipeline: [
-//           {
-//             $lookup: {
-//               from: "commentreplies",
-//               localField: "_id",
-//               foreignField: "postId",
-//               as: "replies",
-//             },
-//           },
-//           {
-//             $addFields: {
-//               replyCount: { $size: { $ifNull: ["$replies", []] } },
-//             },
-//           },
-//           {
-//             $group: {
-//               _id: "$_id",
-//               commentCount: { $sum: 1 },
-//               replyCount: { $sum: "$replyCount" },
-//             },
-//           },
-//         ],
-//       },
-//     },
+  if (!deletedPost) throw new Error('Failed to delete post');
 
-//     {
-//       $addFields: {
-//         likeCount: { $size: "$likes" },
-//         likeBy: { $map: { input: "$likes", as: "like", in: "$$like.likedBy" } },
-//         // commentCount: { $size: { $ifNull: ["$comments", []] } },
-//         commentCount: { $sum: "$comments.commentCount" },
-//         replycommentCount: { $sum: "$comments.totalReplyCount" },
-//         // replycommentCount: { $sum: "$comments.replyCount" },
-//         // totalCommentCount: {
-//         //   $add: [
-//         //     { $size: { $ifNull: ["$comments", []] } }, 
-//         //     { $sum: "$comments.replyCount" } 
-//         //   ]
-//         // }
-//         totalCommentCount: {
-//           $add: [
-//             { $sum: "$comments.commentCount" },  // Sum of comments
-//             { $sum: "$comments.totalReplyCount" } // Sum of replies
-//           ],
-//         },
-//       },
-//     },
-//     {
-//       $sort: { createdAt: -1 },
-//     },
-//     {
-//       $project: {
-//         title: 1,
-//         images: 1,
-//         description: 1,
-//         category: 1,
-//         createdBy: 1,
-//         likeCount: 1,
-//         likeBy: 1,
-//         commentCount: 1,
-//         replycommentCount: 1,
-//         totalCommentCount: 1,
-//       },
-//     },
-//     {
-//       $skip: skip,
-//     },
-//     {
-//       $limit: parseInt(limit),
-//     },
-//   ]);
+  return deletedPost;
 
-//   return posts;
-// };
+}
 
 const getAllPosts = async ({
   searchString,
-  parsedCategory=[],
+  parsedCategory = [],
   page = 1,
   limit = 10,
-  
+
 }) => {
 
-  
-  // const parsedCategory = JSON.parse(category ?? "[]");
   let matchConditions = {};
 
   if (searchString) {
     const regex = new RegExp(searchString, "i");
     matchConditions.$or = [{ title: regex }, { description: regex }];
   }
-
-  // if (Array.isArray(parsedCategory) && parsedCategory.length > 0) {
-  //   matchConditions.category = { $in: parsedCategory };
-  // } else {
-  //   matchConditions.category = { $exists: true }; // or use any default filter if needed
-  // }
 
   if (parsedCategory?.length > 0) {
     matchConditions.category = { $in: parsedCategory };
@@ -181,7 +82,7 @@ const getAllPosts = async ({
 
   const posts = await postModel.aggregate([
     {
-      $match: matchConditions, 
+      $match: matchConditions,
     },
     {
       $lookup: {
@@ -207,7 +108,7 @@ const getAllPosts = async ({
         pipeline: [
           {
             $project: {
-              _id: 1,       
+              _id: 1,
             },
           },
         ],
@@ -236,10 +137,10 @@ const getAllPosts = async ({
         replycommentCount: { $size: { $ifNull: ["$replies", []] } },
         totalCommentCount: {
           $add: [
-            { $size: { $ifNull: ["$comments", []] } },  
-            { $size: { $ifNull: ["$replies", []] } }, 
+            { $size: { $ifNull: ["$comments", []] } },
+            { $size: { $ifNull: ["$replies", []] } },
           ],
-        },     
+        },
       },
     },
     {
@@ -252,12 +153,10 @@ const getAllPosts = async ({
         description: 1,
         category: 1,
         createdBy: 1,
-        createdAt:1,
+        createdAt: 1,
         likeCount: 1,
-        likeBy: 1,        
-        // commentCount: 1,
-        // replycommentCount: 1,
-        totalCommentCount: 1,           
+        likeBy: 1,
+        totalCommentCount: 1,
       },
     },
     {
@@ -275,4 +174,4 @@ const getAllPosts = async ({
   };
 };
 
-export { postCreate, getAllPosts };
+export { postCreate, postEdit, getAllPosts, postDelete };

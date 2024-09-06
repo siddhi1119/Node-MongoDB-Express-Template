@@ -42,11 +42,15 @@ router
 
 router
   .route("/create-post")
-  .post(
-    isActiveAdmin,
-    validate(postSchemas.postValidationSchema),
-    postController.createPost
-  );
+  .post(isActiveAdmin,validate(postSchemas.postValidationSchema), postController.createPost);
+
+router
+  .route("/edit-post/:id")
+  .put(isActiveAdmin, postController.editPost);
+
+router
+  .route("/delete-post/:id")
+  .delete(isActiveAdmin, postController.deletePost);
 
 router
   .route("/like/:id")
@@ -73,11 +77,11 @@ router
   .delete(isActiveAdmin, postCommentController.deleteComment);
 
 router
-  .route("/comment-like")
+  .route("/comment-like/:id")
   .put(isActiveAdmin, commentLikeController.likeComment);
 
 router
-  .route("/comment-dislike")
+  .route("/comment-dislike/:id")
   .put(isActiveAdmin, commentLikeController.unLikeComment);
 
 router
@@ -93,7 +97,7 @@ router
   .delete(isActiveAdmin, postCommentController.deleteReplyComment);
 
 router
-  .route("/like-reply-comment")
+  .route("/like-reply-comment/:id")
   .put(isActiveAdmin, commentReplyLikeController.likeReplyComment);
 
 router

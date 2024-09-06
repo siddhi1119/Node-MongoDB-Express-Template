@@ -32,10 +32,11 @@ const fetchAllcomments = async (req, res) => {
 };
 
 const deleteComment = async (req, res) => {
+  
   const { id: commentId } = req.params;
   const commentBy = req?.user?._id + "";
   try {
-    const deletedComment = await commentDelete(commentBy, commentId);
+    const deletedComment = await commentDelete(postCommentsModel,commentBy, commentId);
     return sendSuccessResponse(req, res, deletedComment);
   } catch (error) {
     console.log(error);
@@ -59,8 +60,9 @@ const replyToComment = async (req, res) => {
   const {  id:parentCommentId } = req.params;
   const { content, postId } = req.body;
   const commentBy = req?.user?._id + "";
+  const name = req?.user?.name;
   try {
-    const savedReply = await addReplyToComment(parentCommentId, postId, commentBy, content);
+    const savedReply = await addReplyToComment(parentCommentId, postId, commentBy, content, name);
     return sendSuccessResponse(req, res, savedReply);
   } catch (error) {
     return sendError(error.message, req, res, 400);

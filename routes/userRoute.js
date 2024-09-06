@@ -21,9 +21,17 @@ router
   .route('/create-post')
   .post(isActiveUser, validate(postSchemas.postValidationSchema), postController.createPost)
 
-  router
+router
   .route("/posts")
   .get(isActiveUser, postController.fetchAllPost);
+
+router
+  .route("/edit-post/:id")
+  .put(isActiveUser, postController.editPost);
+
+router
+  .route("/delete-post/:id")
+  .delete(isActiveUser, postController.deletePost);
 
 router
   .route("/like/:id")
@@ -49,12 +57,12 @@ router
   .route("/delete-comment/:id")
   .delete(isActiveUser, postCommentController.deleteComment);
 
-router
-  .route("/comment-like")
+  router
+  .route("/comment-like/:id")
   .put(isActiveUser, commentLikeController.likeComment);
 
 router
-  .route("/comment-dislike")
+  .route("/comment-dislike/:id")
   .put(isActiveUser, commentLikeController.unLikeComment);
 
 router
@@ -69,8 +77,8 @@ router
   .route("/delete-reply-comment/:id")
   .delete(isActiveUser, postCommentController.deleteReplyComment);
 
-router
-  .route("/like-reply-comment")
+  router
+  .route("/like-reply-comment/:id")
   .put(isActiveUser, commentReplyLikeController.likeReplyComment);
 
 router

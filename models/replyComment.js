@@ -6,8 +6,9 @@ const replyCommentSchema = new mongoose.Schema({
   parentCommentId: {type: mongoose.Schema.Types.ObjectId, ref: 'PostComments'},
   // parentReplyId: { type: mongoose.Schema.Types.ObjectId, ref: 'commentReply' },
   commentBy: { type: mongoose.Schema.Types.ObjectId, ref: 'users', required:true},
-  name: {type: String}
-}, { timestamps: true });
+  name: {type: String},
+  createdAt: {type: Date, default: Date.now},
+});
 
 
 const CommentsReplyModel = mongoose.model('commentReply', replyCommentSchema);

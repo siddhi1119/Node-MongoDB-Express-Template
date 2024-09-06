@@ -4,7 +4,8 @@ import { commentReplyLikeAdded, commentReplyLikeRemove, getAllReplyComments } fr
 import CommentsReplyModel from "../models/replyComment.js";
 
 const likeReplyComment = async (req, res) => {
-  const { commentId } = req.query;
+  
+  const { id : commentId } = req.params;
   const likedBy = req?.user?._id + "";
   const name = req?.user?.name;
 

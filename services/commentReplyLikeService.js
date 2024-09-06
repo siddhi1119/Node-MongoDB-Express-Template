@@ -3,6 +3,7 @@ import CommentsReplyModel from "../models/replyComment.js";
 import { sendError, sendSuccessResponse } from "../utils/ApiResponse.js";
 
 const commentReplyLikeAdded = async({commentId,likedBy,name})=>{  
+  
     const isAlreadyLikedComment = await commentReplyLikesModel.findOne({commentId,likedBy}).lean();
     if (!isAlreadyLikedComment) {
         const newCommentLike = await commentReplyLikesModel.create({
@@ -17,7 +18,7 @@ const commentReplyLikeAdded = async({commentId,likedBy,name})=>{
 }
 
 const commentReplyLikeRemove = async({id,likedBy})=>{    
-  const disLikePost = await commentReplyLikesModel.findByIdAndDelete({id,likedBy}).lean();  
+  const disLikePost = await commentReplyLikesModel.deleteOne({id,likedBy}).lean();  
   return disLikePost;
 }
 
@@ -64,10 +65,11 @@ const getAllReplyComments = async ({ postId, page = 1, limit = 10 }) => {
       $project: {
         content: 1,
         postId: 1,
-        commentBy: 1,
+        commentBy: 1,        
         name: 1,
         likeCount: 1,
         likeBy: 1,
+        createdAt: 1,
       },
     },
     {

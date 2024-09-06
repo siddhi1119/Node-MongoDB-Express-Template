@@ -2,6 +2,7 @@ import commentLikesModel from "../models/commentLikes.js";
 import { sendError, sendSuccessResponse } from "../utils/ApiResponse.js";
 
 const commentLikeAdded = async({commentId,likedBy,name})=>{  
+  
     const isAlreadyLikedComment = await commentLikesModel.findOne({commentId,likedBy}).lean();
     if (!isAlreadyLikedComment) {
         const newCommentLike = await commentLikesModel.create({
@@ -15,11 +16,11 @@ const commentLikeAdded = async({commentId,likedBy,name})=>{
       }   
 }
 
-const commentLikeRemove = async({commentId,likedBy})=>{    
-  const disLikePost = await commentLikesModel.findByIdAndDelete({commentId,likedBy}).lean();  
+const commentLikeRemove = async({commentId,likedBy})=>{      
+  const disLikePost = await commentLikesModel.deleteOne({commentId,likedBy}).lean();  
   return disLikePost;
 }
-
+//45de4
 
 export {  
     commentLikeAdded,
