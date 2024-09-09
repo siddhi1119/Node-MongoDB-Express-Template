@@ -51,10 +51,10 @@ const unLikeReplyComment = async (req, res) => {
 };
 
 const fetchReplyComment = async (req, res) => {
-  try {
-    const { id: postId } = req.params;  
-    const { page = 1 , limit = 10 } = req.query;    
-    const allComments = await getAllReplyComments({ postId: mongoose.Types.ObjectId(postId), page, limit });
+  try {    
+    const { id: parentCommentId } = req.params;  
+    const {postId, page = 1 , limit = 10 } = req.query;    
+    const allComments = await getAllReplyComments({ parentCommentId: mongoose.Types.ObjectId(parentCommentId),postId: mongoose.Types.ObjectId(postId), page, limit });
     return sendSuccessResponse(req, res, allComments, allComments?.length);
   } catch (error) {
     console.log(error);

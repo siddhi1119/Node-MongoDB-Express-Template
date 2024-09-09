@@ -1,19 +1,19 @@
 import mongoose from 'mongoose';
 
 const postSchema = new mongoose.Schema({
-  title: {type: String, required: true },
-  images: { type: [String], required: true},
-  description: { type: String,required: true},
-  category: {type: [String], required: true},    
+  title: { type: String, index: true, required: true },
+  images: { type: [String], required: true },
+  description: { type: String, required: true },
+  category: { type: [String], index: true, required: true },
   createdBy: {
-     id: {
+    id: {
       type: mongoose.Schema.Types.ObjectId, ref: "users",
       required: true,
     },
-    name:{type: String},    
-    role: {type: String, required: true},
+    name: { type: String },
+    role: { type: String, required: true },
   },
-  createdAt: {type: Date, default: Date.now},
+  createdAt: { type: Date, default: Date.now },
 });
 
 

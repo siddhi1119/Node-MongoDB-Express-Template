@@ -23,10 +23,11 @@ const commentReplyLikeRemove = async({id,likedBy})=>{
 }
 
 
-const getAllReplyComments = async ({ postId, page = 1, limit = 10 }) => {
+const getAllReplyComments = async ({ parentCommentId,postId, page = 1, limit = 10 }) => {  
   let matchConditions = {};
 
-  if (postId) {
+  if (parentCommentId && postId) {
+    matchConditions.parentCommentId = parentCommentId; 
     matchConditions.postId = postId; 
   }
 

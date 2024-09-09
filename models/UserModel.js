@@ -4,16 +4,16 @@ import bcrypt from 'bcrypt';
 const userSchema = new mongoose.Schema({
     // id: { type: String, default: uuidv4 },
     firstName: { type: String },
-    lastName: { type: String},
+    lastName: { type: String },
     gender: { type: String },
     hobby: [{ type: String }],
-    email: { type: String, required: true }, //unique: true
+    email: { type: String, index: true, required: true }, //unique: true
     password: { type: String, required: true },
     role: { type: String },
-    loginCount: { type: Number , default:0 },
-    isBlock: { type: Boolean , default:false},
-    isAdminApproved: { type: Boolean,default:false },
-    isDeleted : { type: Boolean ,default:false}
+    loginCount: { type: Number, default: 0 },
+    isBlock: { type: Boolean, index: true, default: false },
+    isAdminApproved: { type: Boolean, index: true, default: false },
+    isDeleted: { type: Boolean, default: false }
 })
 
 userSchema.pre('save', async function (next) {
@@ -22,16 +22,16 @@ userSchema.pre('save', async function (next) {
     if (!user.isModified('password')) return next();
     try {
         // Generate a salt
-        const salt = await bcrypt.genSalt(10);        
+        const salt = await bcrypt.genSalt(10);
         // Hash the password using the salt
         user.password = await bcrypt.hash(user.password, salt);
-      
+
         next();
     } catch (err) {
         next(err);
     }
 });
 
-const userModels = mongoose.model('users',userSchema);
+const userModels = mongoose.model('users', userSchema);
 
 export default userModels;
